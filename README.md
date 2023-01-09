@@ -1,8 +1,25 @@
 # 启动项目
 
+启动前请确保电脑已安装`nodejs`
+
+之后输入以下命令
+
+## 启动前端
+
 ```bash
 npm install
 npm run dev
+```
+
+
+
+## 启动后端
+
+**打开end目录 输入以下命令**
+
+```bash
+npm install
+node app.js
 ```
 
 
