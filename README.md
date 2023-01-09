@@ -24,6 +24,7 @@ npm install
 node app.js
 ```
 
+**ws连接修改请找到 `src/App.vue` 的第49行进行修改**
 
 
 # ws响应消息解释
