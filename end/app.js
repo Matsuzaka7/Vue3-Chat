@@ -3,7 +3,7 @@ const fs = require("fs");
 const ws = require("ws");
 const app = express();
 
-// 创建 http wws，端口为1000
+// 创建 http wws，端口为1001
 let wss = new ws.WebSocketServer({ port: 1001 });
 
 // 所有人的名单
@@ -97,7 +97,6 @@ wss.on("connection", (connection, req) => {
 
   // 处理客户端关闭
   connection.on("close", function (code, reason) {
-    console.log("有人关闭了");
     personList = personList.filter((f) => f !== ip);
     broadList(
       wss,
