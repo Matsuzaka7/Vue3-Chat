@@ -165,7 +165,7 @@ const resetInfoCount = () => {
   height: 0;
   border: 10px solid transparent;
   border-top: 10px solid #FF7AAD;
-}
+} 
 
 .ChatInput {
   resize: none;
