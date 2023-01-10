@@ -12,13 +12,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, reactive, onMounted, inject } from 'vue'
+import { ref, Ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import ChatInfo from './children/chat-info.vue';
 import { scrollBottom } from '../../utils/Chat.js'
 
 const emit = defineEmits(['emitInfo', 'loadMore'])
-const infoData: any = inject('infoData')
 const textValue = ref('')
 const ChatInfoEl: Ref<HTMLElement | null> = ref(null)
 
@@ -54,8 +53,9 @@ const updatePage = ({ isMore, data }, type) => {
 }
 // 检测是否滚动到头
 const scroll = (e) => {
+  const target = e.target
   if (pageData.isLoad) return
-  if (e.target.scrollTop <= 0) {
+  if (target.scrollTop <= 0) {
     if (!pageData.isMore) return ElMessage.error('没有更早的消息了~')
     loadText.value = '加载中..'
     pageData.isLoad = true
@@ -63,6 +63,8 @@ const scroll = (e) => {
       page: pageData.page,
       limit: pageData.limit
     }, updatePage)
+  } else if (target.scrollHeight - (target.scrollTop + target.offsetHeight) < 40) {
+    newInfoCount.value = 0
   }
 }
 
@@ -165,7 +167,7 @@ const resetInfoCount = () => {
   height: 0;
   border: 10px solid transparent;
   border-top: 10px solid #FF7AAD;
-} 
+}
 
 .ChatInput {
   resize: none;
