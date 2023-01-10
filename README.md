@@ -1,5 +1,3 @@
-项目预览：[http://47.95.112.111/](http://47.95.112.111/)
-****
 # 启动项目
 
 启动前请确保电脑已安装`nodejs`
@@ -24,8 +22,9 @@ npm install
 node app.js
 ```
 
-**ws连接修改请找到 `src/App.vue` 的第49行进行修改**
 
+
+如果连接失败，请找到 `src/App.vue` 的第49行进行修改 ws地址，改为自己本机`ip4地址`，或`localhost` ，或`127.0.0.1`
 
 # ws响应消息解释
 
@@ -77,11 +76,30 @@ node app.js
     type: "infoData",
     data: [
         {
+            id,
             time,
             userIP,
             value
         }
     ]
+}
+```
+
+
+
+## newInfo
+
+当用户给服务器发送一条消息后，服务器将会把该消息进行广播发给每一位用户
+
+```js
+{
+      type: "newInfo",
+      data: {
+        id,
+        time,
+        userIP,
+        value
+      }
 }
 ```
 
@@ -99,6 +117,24 @@ node app.js
     }
 }
 ```
+
+
+
+## loadMoreData
+
+用户滚动到顶部时触发的事件，服务器将会返回更多聊天数据给用户
+
+```js
+{
+    type: "loadMoreData",
+    data: {
+        isMore: boolean, // 表示告诉用户是否还有更多数据
+        data: []	 	 // 返回的数据
+    }
+}
+```
+
+
 
 
 
@@ -133,6 +169,24 @@ node app.js
     data: ''
 }
 ```
+
+
+
+## loadMoreInfo
+
+用户滚动到顶部时，加载更多数据将会发送该类型给服务器，服务器收到后将会返回 `loadMoreData`
+
+```js
+{
+    type: 'loadMoreInfo',
+    data: {
+        page, // 当前页数
+        limit // 每页的条数
+    }
+}
+```
+
+
 
 
 
