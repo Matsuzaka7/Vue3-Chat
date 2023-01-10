@@ -46,12 +46,11 @@ const infoData: any = ref([])
 provide('userIP', userIP)
 provide('infoData', infoData)
 
-const ws = new WebSocket('ws://127.0.0.1:1001');
+const ws = new WebSocket('ws://47.95.112.111:1001');
 // 接收到消息的回调
 ws.onmessage = function (evt: MessageEvent) {
   // let data = JSON.parse(evt.data)
   let { data, type } = JSON.parse(base64ToUtf8(evt.data))
-  console.log(data);
   switch (type) {
     case "rejectWs":
       ws.close()
@@ -132,6 +131,7 @@ const loadMore = (pageData, fn) => {
     type: 'loadMoreInfo',
     data: pageData
   }))
+  // fn调用后需要告诉子组件, 数据是否全部被获取了
   tempFn = fn
 }
 
