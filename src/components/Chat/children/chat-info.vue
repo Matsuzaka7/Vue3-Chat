@@ -1,5 +1,5 @@
 <template v-if="infoData">
-  <div class="chat-info-container" v-for="(item, index) in infoData" :key="item.time+item.userIP">
+  <div class="chat-info-container" v-for="(item, index) in infoData" :key="item.id">
     <TimeMessage :timer="infoData[index]?.time" v-if="index === 0 || infoData[index]?.time - infoData[index-1]?.time > 1000*60*3"></TimeMessage>
     <div :class="[computedBelongToIp(item.userIP) ? 'chat-info-right' : 'chat-info-left']">
       <p class="name">{{ item.userIP }}</p>
