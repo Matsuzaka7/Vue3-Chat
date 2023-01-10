@@ -1,6 +1,7 @@
 <template>
   <div class="ChatBox">
-    <div class="ChatInfo">
+    <div ref="ChatInfoEl" class="ChatInfo" @scroll="scroll">
+      <div class="load" v-show="pageData.isLoad">{{ pageData.isLoad && loadText }}</div>
       <ChatInfo @newInfoChange="newInfoChange"></ChatInfo>
     </div>
     <div class="ChatText">
@@ -11,14 +12,61 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, Ref, reactive, onMounted, inject } from 'vue'
 import { ElMessage } from 'element-plus'
 import ChatInfo from './children/chat-info.vue';
 import { scrollBottom } from '../../utils/Chat.js'
 
-const emit = defineEmits(['emitInfo'])
+const emit = defineEmits(['emitInfo', 'loadMore'])
+const infoData: any = inject('infoData')
 const textValue = ref('')
+const ChatInfoEl: Ref<HTMLElement | null> = ref(null)
 
+
+const pageData = reactive({
+  isLoad: false, // 正在加载中？
+  isMore: true,  // 是否还有更多？
+  page: 1,       // 加载次数
+  limit: 20,     // 每次加载的条数
+  type: ''       // 用来判断是新消息还是上划加载的消息
+})
+
+let height = 0
+onMounted(() => {
+  height = ChatInfoEl.value!.scrollHeight
+})
+
+// 数据加载成功时执行
+const loadText = ref('')
+const updatePage = ({ isMore, data }, type) => {
+  queueMicrotask(() => {
+    ChatInfoEl.value!.scrollTo(0, ChatInfoEl.value!.scrollHeight - height)
+  });
+
+  pageData.type = type
+  pageData.isLoad = false
+  if (isMore) {
+    pageData.page++
+  } else {
+    pageData.isMore = isMore
+  }
+  height = ChatInfoEl.value!.scrollHeight
+}
+// 检测是否滚动到头
+const scroll = (e) => {
+  if (pageData.isLoad) return
+  if (e.target.scrollTop <= 0) {
+    if (!pageData.isMore) return ElMessage.error('没有更早的消息了~')
+    loadText.value = '加载中..'
+    pageData.isLoad = true
+    emit('loadMore', {
+      page: pageData.page,
+      limit: pageData.limit
+    }, updatePage)
+  }
+}
+
+let timer = 0
 const inputChange = (e) => {
   if (e.keyCode === 13) {
     if (textValue.value.length >= 200) {
@@ -31,11 +79,14 @@ const inputChange = (e) => {
     }
 
     if (!textValue.value.trim()) {
-      ElMessage({
-        message: '空文本',
-        type: 'warning',
-      })
-      setTimeout(() => textValue.value = textValue.value.slice(0, -1));
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        ElMessage({
+          message: '空文本',
+          type: 'warning',
+        })
+        setTimeout(() => textValue.value = '');
+      }, 600);
       return
     }
 
@@ -48,7 +99,10 @@ const inputChange = (e) => {
 
 const newInfoCount = ref(0)
 const newInfoChange = () => {
-  newInfoCount.value = newInfoCount.value+1
+  if (pageData.type !== 'loadMoreData') {
+    newInfoCount.value++
+  }
+  pageData.type = ''
 }
 
 const resetInfoCount = () => {
@@ -66,9 +120,16 @@ const resetInfoCount = () => {
 }
 
 .ChatInfo {
+  position: relative;
   flex: 0.88;
   overflow: auto;
   margin-bottom: 5px;
+}
+
+.load {
+  text-align: center;
+  color: lightseagreen;
+  font-size: 13px;
 }
 
 .ChatText {
