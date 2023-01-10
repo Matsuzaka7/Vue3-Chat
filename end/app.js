@@ -7,7 +7,7 @@ let wss = new ws.WebSocketServer({ port: 1001 });
 // 所有人的名单
 let personList = [];
 // 聊天数据路径
-const infoDataPath = "../data/infoData.json";
+const infoDataPath = "./infoData.json";
 // 检测一次该路径是否有该文件
 try {
   fs.readFileSync(infoDataPath, "utf8")
