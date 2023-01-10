@@ -132,7 +132,6 @@ const loadMore = (pageData, fn) => {
     type: 'loadMoreInfo',
     data: pageData
   }))
-  // fn调用后需要告诉子组件, 数据是否全部被获取了
   tempFn = fn
 }
 
