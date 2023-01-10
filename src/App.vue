@@ -10,7 +10,7 @@
     <div class="box">
       <List :style="{ minWidth: flag ? '145px' : '12px', overflow: flag ? 'auto' : 'hidden' }" class="List"
         :wsData="wsData" :userIP="userIP" @updateWidth="updateWidth"></List>
-      <Chat @emitInfo="emitInfo"></Chat>
+      <Chat @emitInfo="emitInfo" @loadMore="loadMore"></Chat>
     </div>
     <span class="hint" v-if="notice">{{ notice }}</span>
   </Cart>
@@ -50,26 +50,41 @@ const ws = new WebSocket('ws://127.0.0.1:1001');
 // 接收到消息的回调
 ws.onmessage = function (evt: MessageEvent) {
   // let data = JSON.parse(evt.data)
-  let data = JSON.parse(base64ToUtf8(evt.data))
-  if (data.type === "rejectWs") {
-    ws.close()
-    ElMessage.error('')
-    wsLink.value = false
-    return
-  } else if (data.type === "personList") {
-    wsData.value = data.data
-  } else if (data.type === "userIP") {
-    userIP.value = data.data
-    const ipData: any[] = JSON.parse(localStorage.getItem('data')!) || []
-    if (ipData.includes(data.data)) return
-    ipData.push(data.data)
-    localStorage.setItem('data', JSON.stringify(ipData))
-  } else if (data.type === "notice") {
-    notice.value = data.data
-  } else if (data.type === "infoData") {
-    infoData.value = data.data
-  } else if (data.type === 'newInfo') {
-    infoData.value.push(data.data)
+  let { data, type } = JSON.parse(base64ToUtf8(evt.data))
+  console.log(data);
+  switch (type) {
+    case "rejectWs":
+      ws.close()
+      ElMessage.error('')
+      wsLink.value = false
+      return
+    case "personList":
+      wsData.value = data
+      break;
+    case "userIP":
+      userIP.value = data
+      const ipData: any[] = JSON.parse(localStorage.getItem('data')!) || []
+      if (ipData.includes(data)) return
+      ipData.push(data)
+      localStorage.setItem('data', JSON.stringify(ipData))
+      break;
+    case "notice":
+      notice.value = data
+      break;
+    case "infoData":
+      infoData.value = data
+      break;
+    case "newInfo":
+      infoData.value.push(data)
+      break;
+    case "loadMoreData":
+      infoData.value = [...data.data, ...infoData.value]
+      tempFn && tempFn(data, type)
+      tempFn = null
+      break;
+    default:
+      console.log('未知类型，请联系管理员');
+      break;
   }
 };
 
@@ -108,6 +123,17 @@ const emitInfo = (data) => {
     type: 'addInfoData',
     data
   }))
+}
+
+// 加载更多聊天数据
+let tempFn: null | Function = null
+const loadMore = (pageData, fn) => {
+  ws.send(JSON.stringify({
+    type: 'loadMoreInfo',
+    data: pageData
+  }))
+  // fn调用后需要告诉子组件, 数据是否全部被获取了
+  tempFn = fn
 }
 
 onUnmounted(() => {
