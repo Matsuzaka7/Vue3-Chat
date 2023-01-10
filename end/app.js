@@ -1,18 +1,16 @@
-const express = require("express");
 const fs = require("fs");
 const ws = require("ws");
-const app = express();
 
-// 创建 http wws，端口为1001
+// 创建 http wws，端口为1000
 let wss = new ws.WebSocketServer({ port: 1001 });
 
 // 所有人的名单
 let personList = [];
 // 聊天数据路径
-const infoDataPath = "./infoData.json";
+const infoDataPath = "../data/infoData.json";
 // 检测一次该路径是否有该文件
 try {
-  const data = fs.readFileSync(infoDataPath, "utf8")
+  fs.readFileSync(infoDataPath, "utf8")
 } catch (error) {
   fs.appendFileSync(infoDataPath, '[]')
 }
@@ -73,10 +71,13 @@ wss.on("connection", (connection, req) => {
     })
   );
 
+  // 初次加载条数
+  const limits = 15
+  const infoData = JSON.parse(fs.readFileSync(infoDataPath, "utf8"))
   connection.send(
     strToBase64({
       type: "infoData",
-      data: JSON.parse(fs.readFileSync(infoDataPath, "utf8")),
+      data: infoData.slice(-limits),
     })
   );
 
@@ -116,6 +117,7 @@ wss.on("connection", (connection, req) => {
     if (data.type === "addInfoData") {
       const infoData = JSON.parse(fs.readFileSync(infoDataPath, "utf8"));
       const infoObj = {
+        id: String(Date.now() + Math.random() ).substring(2, 16),
         time: Date.now(),
         userIP: ip,
         value: data.data,
@@ -127,6 +129,19 @@ wss.on("connection", (connection, req) => {
         strToBase64({
           type: "newInfo",
           data: infoObj,
+        })
+      );
+    } else if (data.type === "loadMoreInfo") {
+      const { page, limit } = data.data
+      const infoData = JSON.parse(fs.readFileSync(infoDataPath, "utf8"));
+      const sliceData = infoData.slice(-(limits + page * limit), -(limit + (page-1) *limit))
+      connection.send(
+        strToBase64({
+          type: "loadMoreData",
+          data: {
+            isMore: sliceData.length === 0 ? false : true,
+            data: sliceData
+          },
         })
       );
     }
