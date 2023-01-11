@@ -2,7 +2,7 @@
   <div @click="showUl">
     <i class="iconfont icon-dian temp"></i>
     <ul class="list" v-if="props.wsData.personList && props.wsData.personList.length">
-      <li @click="rename()" :class="{busy: item === props.userIP}" v-for="item in props.wsData.personList"><i style="font-size: 20px;" class="iconfont icon-dian"></i><span class="name">{{ item }}</span></li>
+      <li :class="{busy: item === props.userIP}" v-for="item in props.wsData.personList"><i style="font-size: 20px;" class="iconfont icon-dian"></i><span class="name">{{ item }}</span></li>
     </ul>
   </div>
 </template>
@@ -22,7 +22,7 @@ const props = defineProps({
 })
 
 const rename = () => {
-  
+
 }
 
 // false打开, true关闭
