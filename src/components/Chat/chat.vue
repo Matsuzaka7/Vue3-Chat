@@ -21,7 +21,6 @@ const emit = defineEmits(['emitInfo', 'loadMore'])
 const textValue = ref('')
 const ChatInfoEl: Ref<HTMLElement | null> = ref(null)
 
-
 const pageData = reactive({
   isLoad: false, // 正在加载中？
   isMore: true,  // 是否还有更多？

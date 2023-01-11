@@ -9,6 +9,6 @@ window.addEventListener("storage", (e) => {
   localStorage.setItem(e.key, e.oldValue);
 })
 
-const app = createApp(App);
 
+const app = createApp(App);
 app.mount("#app");
