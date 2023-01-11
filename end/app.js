@@ -1,7 +1,7 @@
 import fs from "fs"
 import ws, { WebSocketServer } from "ws"
 import express from "express"
-import { wsPort, httpPort, infoDataPath, userDataPath } from "./config/index.js"
+import { wsHost, httpHost, infoDataPath, userDataPath } from "./config/index.js"
 import { broadList, strToBase64 } from './utils/index.js'
 import userRouter from './routers/index.js'
 
@@ -9,7 +9,7 @@ const app = express()
 app.use(userRouter)
 
 // 创建 http ws，端口为1000
-let wss = new WebSocketServer({ port: wsPort });
+let wss = new WebSocketServer({ port: wsHost });
 
 // 所有人的名单
 let personList = [];
@@ -136,7 +136,8 @@ wss.on("connection", (connection, req) => {
         id: String(Date.now() + Math.random() ).substring(2, 16),
         time: Date.now(),
         userIP: ip,
-        value: data.data,
+        value: data.data.value,
+        username: data.data.username
       };
       infoData.push(infoObj);
       fs.writeFileSync(infoDataPath, JSON.stringify(infoData, null, 2), "utf8");
@@ -160,8 +161,6 @@ wss.on("connection", (connection, req) => {
           },
         })
       );
-    } else if (data.type === "setUserName") {
-      
     }
   });
 
@@ -179,12 +178,12 @@ wss.on("connection", (connection, req) => {
 });
 
 
-app.listen(httpPort, () => {
+app.listen(httpHost, () => {
   console.log(
     `
       本地服务已启动
-        - ws端口为：${wsPort}
-        - http端口为：${httpPort}
+        - ws地址为：${wsHost}
+        - http地址为：${httpHost}
     `
   )
 })
