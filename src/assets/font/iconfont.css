@@ -1,6 +1,6 @@
 @font-face {
   font-family: "iconfont"; /* Project id  */
-  src: url('iconfont.ttf?t=1673175897876') format('truetype');
+  src: url('iconfont.ttf?t=1673764820977') format('truetype');
 }
 
 .iconfont {
@@ -9,6 +9,14 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-wenjianjia:before {
+  content: "\f00c5";
+}
+
+.icon-tupian:before {
+  content: "\e63a";
 }
 
 .icon-dian:before {

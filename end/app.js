@@ -7,9 +7,10 @@ import userRouter from './routers/index.js'
 
 const app = express()
 app.use(userRouter)
+app.use(express.static("assets/imgs"))
 
 // 创建 http ws，端口为1000
-let wss = new WebSocketServer({ port: wsHost });
+export let wss = new WebSocketServer({ port: wsHost });
 
 // 所有人的名单
 let personList = [];
@@ -133,6 +134,7 @@ wss.on("connection", (connection, req) => {
     if (data.type === "addInfoData") {
       const infoData = JSON.parse(fs.readFileSync(infoDataPath, "utf8"));
       const infoObj = {
+        type: 'text',
         id: String(Date.now() + Math.random() ).substring(2, 16),
         time: Date.now(),
         userIP: ip,
@@ -145,7 +147,7 @@ wss.on("connection", (connection, req) => {
         wss,
         strToBase64({
           type: "newInfo",
-          data: infoObj,
+          data: { ...infoObj, value: data.data.value }
         })
       );
     } else if (data.type === "loadMoreInfo") {
@@ -177,13 +179,12 @@ wss.on("connection", (connection, req) => {
   });
 });
 
-
 app.listen(httpHost, () => {
   console.log(
     `
       本地服务已启动
-        - ws地址为：${wsHost}
-        - http地址为：${httpHost}
+        - ws端口为：${wsHost}
+        - http端口为：${httpHost}
     `
   )
 })

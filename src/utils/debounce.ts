@@ -13,14 +13,14 @@ export const debounce = (fn, delay) => {
 
 // 节流
 export const throttle = (fn, wait) => {
-  var timer = null;
+  var timer = 0;
   return function () {
     var context = this;
     var args = arguments;
     if (!timer) {
       timer = setTimeout(function () {
         fn.apply(context, args);
-        timer = null;
+        timer = 0;
       }, wait);
     }
   };

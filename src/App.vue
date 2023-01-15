@@ -66,12 +66,13 @@ provide('userIP', userIP)
 provide('infoData', infoData)
 provide('username', username)
 
-const ws = new WebSocket('ws://127.0.0.1:1001');
-// const ws = new WebSocket('ws://47.95.112.111:1001');
+const ws = new WebSocket('ws://47.95.112.111:1001');
 // 接收到消息的回调
 ws.onmessage = function (evt: MessageEvent) {
   // let data = JSON.parse(evt.data)
   let { data, type } = JSON.parse(base64ToUtf8(evt.data))
+  console.log(data, type);
+  
   switch (type) {
     case "rejectWs":
       ws.close()
@@ -216,9 +217,7 @@ const onOk = () => {
           })
         }
       })
-      .catch(e => {
-
-      })
+      .catch(e => {})
     })
 }
 
@@ -260,7 +259,6 @@ onUnmounted(() => {
 * {
   margin: 0;
   padding: 0;
-  transition: all 0.15s;
 }
 
 li {
@@ -360,6 +358,7 @@ textarea:focus {
   border-right: 1px solid #eee;
   overflow: auto;
   padding: 8px 12px;
+  transition: all 0.15s;
 }
 
 .WBox {

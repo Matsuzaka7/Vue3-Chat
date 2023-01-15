@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.2",
+    "formidable": "^2.1.1",
     "ws": "^8.12.0"
   }
 }
