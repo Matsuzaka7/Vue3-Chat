@@ -6,7 +6,7 @@
       <p class="name">{{ `${item.username || ''} [${item.userIP}]` }}</p>
       <div class="chat" :class="[computedBelongToIp(item.userIP) ? 'chat-info-item-right' : 'chat-info-item-left']">
         <div class="chat-image" v-if="item.type === 'image'">
-          <img v-viewer :src="'http://47.95.112.111:1000/' + item.value" alt="[图片] 加载失败！">
+          <img v-viewer :src="'http://127.0.0.1:1000/' + item.value" alt="[图片] 加载失败！">
         </div>
         <div v-else-if="item.type === 'text'">
           {{ item.value }}
