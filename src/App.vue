@@ -66,7 +66,7 @@ provide('userIP', userIP)
 provide('infoData', infoData)
 provide('username', username)
 
-const ws = new WebSocket('ws://47.95.112.111:1001');
+const ws = new WebSocket('ws://127.0.0.1:1001');
 // 接收到消息的回调
 ws.onmessage = function (evt: MessageEvent) {
   // let data = JSON.parse(evt.data)
