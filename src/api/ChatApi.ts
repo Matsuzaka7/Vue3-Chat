@@ -1,5 +1,5 @@
 import axios from 'axios'
-const baseUrl = 'http://47.95.112.111:1000/'
+const baseUrl = 'http://127.0.0.1:1000/'
 /**
  * 
  * @param name 用户名
