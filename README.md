@@ -24,7 +24,15 @@ node app.js
 
 
 
-如果连接失败，请找到 `src/App.vue` 的第49行进行修改 ws地址，改为自己本机`ip4地址`，或`localhost` ，或`127.0.0.1`
+## 注意
+
+启动后如果连接失败，
+
+请找到 `根目录/.env` 文件，修改其中的 `VITE_APP_BASE_WSS_URL` 与 `VITE_APP_BASE_HTTP_URL` 变量为本机ip
+
+本机ip查看方法：`ipconfig` 
+
+
 
 # ws响应消息解释
 
@@ -136,6 +144,34 @@ node app.js
 
 
 
+## findUserName
+
+> 该类型本应该在http请求中，但忘记迁移过去了。先用着
+
+用户进入时根据ip查找一次用户名返回给用户，查找成功时返回
+
+```js
+{
+    type: "findUserName",
+    data: 查找到的用户名
+}
+```
+
+
+
+## notUser
+
+> 该类型本应该在http请求中，但忘记迁移过去了。先用着
+
+用户进入时根据ip查找一次用户名返回给用户，查找失败时返回
+
+```js
+{
+    type: "notUser",
+    data: false
+}
+```
+
 
 
 ## ~~rejectWs~~
@@ -188,8 +224,52 @@ node app.js
 
 
 
+# http请求解释
+
+## setUserName
+
+设置用户名，当用户第一次访问时，输入用户名确认后触发
+
+- 请求方式：`post`
+
+- 需要的参数
+  - 用户名：name
+- 返回的参数
+  - 缺少参数：`{ type: 'err', data: '缺少参数' }`
+  - 名称重复：`{ type: "rejectUserName", data: false }`
+  - 设置成功：`{ type: "succeedUserName", data: true }`
 
 
-# 其他
 
-当前项目只有一个页面，因此后端只有一个服务文件，不会进行模块拆分
+## getUserName
+
+如果取过名的用户的ip变化了，则触发该请求。用于获取新ip与用户名
+
+- 请求方式：`post`
+
+- 需要的参数
+  - 用户名：name
+- 返回的参数
+  - 缺少参数：`{ type: 'err', data: '缺少参数' }`
+  - 查找成功：`{ type: "succeedUserName", data: true }`
+  - 查找失败：`{ type: "notUser", data: false }`
+
+
+
+## uploadImg
+
+当用户上传图片时触发该事件
+
+- 请求方式：`post`
+- 需要的参数：
+  - 图片的base64格式，并且使用formData包裹的对象
+- 返回的参数：
+  - 可能是form解析失败：
+    - `{ type: "err", data: '意外错误E1，请稍后重试' }`
+  - 图片的base64没有接收到
+    - `{ type: "err", data: '意外错误E2，请稍后重试' }`
+  - 图片保存失败，可能是没有该路径，请检查路径
+    - `{ type: 'saveImage', data: false }`
+  - 图片保存成功
+    - `{ type: 'saveImage', data: true}`
+
