@@ -72,9 +72,7 @@ const ws = new WebSocket(wsUrl);
 // 接收到消息的回调
 ws.onmessage = function (evt: MessageEvent) {
   // let data = JSON.parse(evt.data)
-  let { data, type } = JSON.parse(base64ToUtf8(evt.data))
-  console.log(data, type);
-  
+  let { data, type } = JSON.parse(base64ToUtf8(evt.data))  
   switch (type) {
     case "rejectWs":
       ws.close()
