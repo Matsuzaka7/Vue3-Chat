@@ -4,6 +4,13 @@
       <div class="load" v-show="pageData.isLoad">{{ pageData.isLoad && loadText }}</div>
       <ChatInfo @newInfoChange="newInfoChange"></ChatInfo>
     </div>
+    <div class="auxiliary">
+      <div>
+        <input id="uploadImg" type="file" @change="uploadImg">
+        <label for="uploadImg"><i class="iconfont icon-tupian"></i></label>
+      </div>
+      <div><i class="iconfont icon-wenjianjia"></i></div>
+    </div>
     <div class="ChatText">
       <div class="newInfoCount" v-if="newInfoCount" @click="resetInfoCount">{{ newInfoCount }}</div>
       <textarea class="ChatInput" placeholder="输入内容按回车以发送.." @keydown="inputChange" v-model="textValue"></textarea>
@@ -13,14 +20,17 @@
 
 <script setup lang="ts">
 import { ref, Ref, reactive, onMounted } from 'vue'
+import { ElMessageBox } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import ChatInfo from './children/chat-info.vue';
-import { scrollBottom } from '../../utils/Chat.js'
+import { scrollBottom } from '../../utils/Chat'
+import { compressPicture } from '../../utils/picture'
+import { uploadImageBase64 } from '../../api/ChatApi'
 
 const emit = defineEmits(['emitInfo', 'loadMore'])
 const textValue = ref('')
 const ChatInfoEl: Ref<HTMLElement | null> = ref(null)
-
+const userName = localStorage.getItem('userName') || ''
 
 const pageData = reactive({
   isLoad: false, // 正在加载中？
@@ -111,9 +121,66 @@ const resetInfoCount = () => {
   newInfoCount.value = 0;
   setTimeout(() => scrollBottom(), 100);
 }
+
+// 上传图片
+const uploadImg = (e) => {
+  const { type } = e.target.files[0]
+  if (!type.includes('image')) {
+    ElMessage({
+      type: 'error',
+      message: '仅支持png与jpg格式哦',
+    })
+    return
+  }
+
+  const readObj = new FileReader()
+  readObj.onload = () => {
+    compressPicture(readObj.result as string, 70, 'image/jpeg', (data: string) => {
+      ElMessageBox.confirm(
+        '确认发送该图吗？',
+        '确认',
+        {
+          confirmButtonText: '确认',
+          cancelButtonText: '取消',
+          center: true,
+          customClass: 'custom'
+        }
+      )
+        .then(() => {
+          uploadImageBase64(userName, data).then(({ data }) => {
+            if (data.data) {
+              ElMessage({
+                type: 'success',
+                message: '已发送！',
+              })
+            } else {
+              ElMessage({
+                type: 'warning',
+                message: '发送失败..',
+              })
+            }
+          })
+
+        })
+        .catch(() => {
+          ElMessage({
+            type: 'info',
+            message: '已取消',
+          })
+        })
+
+    })
+  }
+  readObj.readAsDataURL(e.target.files[0])
+
+}
 </script>
 
 <style scoped>
+#uploadImg {
+  display: none;
+}
+
 .ChatBox {
   display: flex;
   flex-direction: column;
@@ -134,12 +201,28 @@ const resetInfoCount = () => {
   font-size: 13px;
 }
 
+.auxiliary {
+  border-top: 1px solid #efefef;
+  padding-top: 3px;
+  padding-left: 5px;
+  margin-bottom: 3px;
+  display: flex;
+}
+
+.auxiliary>div {
+  margin: 0 5px 0 5px;
+}
+
+.icon-tupian,
+.icon-wenjianjia {
+  color: #666;
+  font-size: 1.2em;
+}
+
 .ChatText {
   position: relative;
   flex: 0.12;
-  border-top: 1px solid #efefef;
-  padding: 10px;
-  padding-bottom: 0;
+  padding: 0 10px;
 }
 
 .newInfoCount {
@@ -150,7 +233,7 @@ const resetInfoCount = () => {
   width: 30px;
   height: 30px;
   color: #efefef;
-  background-color: #FF7AAD;
+  background-color: #F56C6C;
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -166,7 +249,7 @@ const resetInfoCount = () => {
   width: 0;
   height: 0;
   border: 10px solid transparent;
-  border-top: 10px solid #FF7AAD;
+  border-top: 10px solid #F56C6C;
 }
 
 .ChatInput {

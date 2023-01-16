@@ -1,10 +1,19 @@
 <template v-if="infoData">
   <div class="chat-info-container" v-for="(item, index) in infoData" :key="item.id">
-    <TimeMessage :timer="infoData[index]?.time" v-if="index === 0 || infoData[index]?.time - infoData[index-1]?.time > 1000*60*3"></TimeMessage>
+    <TimeMessage :timer="infoData[index]?.time"
+      v-if="index === 0 || infoData[index]?.time - infoData[index - 1]?.time > 1000 * 60 * 3"></TimeMessage>
     <div :class="[computedBelongToIp(item.userIP) ? 'chat-info-right' : 'chat-info-left']">
-      <p class="name">{{ item.userIP }}</p>
+      <p class="name">{{ `${item.username || ''} [${item.userIP}]` }}</p>
       <div class="chat" :class="[computedBelongToIp(item.userIP) ? 'chat-info-item-right' : 'chat-info-item-left']">
-        {{ item.value }}
+        <div class="chat-image" v-if="item.type === 'image'">
+          <img v-viewer :src="'http://127.0.0.1:1000/' + item.value" alt="[图片] 加载失败！">
+        </div>
+        <div v-else-if="item.type === 'text'">
+          {{ item.value }}
+        </div>
+        <div v-else>
+          {{ item.value }}
+        </div>
       </div>
     </div>
   </div>
@@ -13,13 +22,14 @@
 <script setup lang="ts">
 import { onMounted, ref, inject, watch } from 'vue'
 import TimeMessage from './time-message.vue'
-import { scrollBottom } from '../../../utils/Chat.js'
+import { scrollBottom } from '../../../utils/Chat'
 
 const emit = defineEmits(['newInfoChange'])
 // 消息的背景颜色
 const bg = ref('#24292F')
 // 用户ip
 const userIP: any = inject('userIP')
+// const username: any = inject('username')
 // 消息数据
 const infoData: any = inject('infoData')
 // 计算消息的方向
@@ -30,6 +40,9 @@ const computedBelongToIp = (itemIp: string) => {
 // 加载完毕时滚动到最底部
 onMounted(() => {
   scrollBottom()
+  setTimeout(() => {
+    scrollBottom()
+  }, 500);
 })
 
 watch(() => infoData, () => {
@@ -51,10 +64,22 @@ watch(() => infoData, () => {
   margin: 0 4px;
   font-size: 14px;
 }
+
 .chat {
   color: #efefef;
   background-color: v-bind(bg);
   user-select: text;
+}
+
+.chat-image {
+  padding: 6px 0 2px 0;
+  overflow: hidden;
+}
+
+.chat-image>img {
+  border-radius: 10px;
+  max-width: 40vw;
+  max-height: 40vh;
 }
 
 .chat-info-container {

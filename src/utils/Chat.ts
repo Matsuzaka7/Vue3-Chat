@@ -8,7 +8,7 @@ export function scrollBottom() {
 // 当页面大小变化时, 是否需要滚动到底部？
 export function resizeChange() {
   setTimeout(() => {
-    let ChatInfo = document.querySelector(".ChatInfo");
+    let ChatInfo: HTMLDivElement = document.querySelector(".ChatInfo")!;
     const cancelDebounce = debounce(() => {
       if (ChatInfo.scrollHeight - (ChatInfo.offsetHeight + ChatInfo.scrollTop) <= window.innerHeight / 3) {
         setTimeout(() => scrollBottom());

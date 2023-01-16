@@ -1,13 +1,19 @@
-const fs = require("fs");
-const ws = require("ws");
+import fs from "fs"
+import ws, { WebSocketServer } from "ws"
+import express from "express"
+import { wsHost, httpHost, infoDataPath, userDataPath } from "./config/index.js"
+import { broadList, strToBase64 } from './utils/index.js'
+import userRouter from './routers/index.js'
 
-// 创建 http wws，端口为1000
-let wss = new ws.WebSocketServer({ port: 1001 });
+const app = express()
+app.use(userRouter)
+app.use(express.static("assets/imgs"))
+
+// 创建 http ws，端口为1000
+export let wss = new WebSocketServer({ port: wsHost });
 
 // 所有人的名单
 let personList = [];
-// 聊天数据路径
-const infoDataPath = "./infoData.json";
 // 检测一次该路径是否有该文件
 try {
   fs.readFileSync(infoDataPath, "utf8")
@@ -15,19 +21,11 @@ try {
   fs.appendFileSync(infoDataPath, '[]')
 }
 
-// 广播, 需要接收一个实例, 和数据
-const broadList = (wss, data) => {
-  wss.clients.forEach(function each(client) {
-    if (client.readyState === ws.OPEN) {
-      client.send(data);
-    }
-  });
-};
-
-const strToBase64 = (data) => {
-  const buffer = Buffer.from(JSON.stringify(data));
-  return buffer.toString("base64");
-};
+try {
+  fs.readFileSync(userDataPath, "utf8")
+} catch (error) {
+  fs.appendFileSync(userDataPath, '[]')
+}
 
 let interval;
 function heartbeat() {
@@ -46,6 +44,25 @@ wss.on("connection", (connection, req) => {
     })
   );
 
+  // 用户进入时根据ip查找一次用户名返回给用户
+  const userData = JSON.parse(fs.readFileSync(userDataPath, "utf8"))
+  const findUserName = userData.find(item => item.ips.includes(ip))
+  if (findUserName) {
+    connection.send(
+      strToBase64({
+        type: "findUserName",
+        data: findUserName.userName,
+      })
+    );
+  } else {
+    connection.send(
+      strToBase64({
+        type: "notUser",
+        data: false,
+      })
+    );
+  }
+
   // 检测链接是否有效
   interval = setInterval(() => {
     wss.clients.forEach(function ping(client) {
@@ -54,15 +71,15 @@ wss.on("connection", (connection, req) => {
     });
   }, 10000);
 
-  // 代表重复的ip进入了网站，让客户端直接断掉请求
-  // if (personList.includes(ip)) {
-  //   const reject = {
-  //     type: 'rejectWs',
-  //     data: '同一ip请勿同时打开多个网页'
-  //   }
-  //   connection.send(JSON.stringify(reject))
-  //   return
-  // }
+  /* // 代表重复的ip进入了网站，让客户端直接断掉请求
+  if (personList.includes(ip)) {
+    const reject = {
+      type: 'rejectWs',
+      data: '同一ip请勿同时打开多个网页'
+    }
+    connection.send(JSON.stringify(reject))
+    return
+  } */
 
   connection.send(
     strToBase64({
@@ -71,8 +88,8 @@ wss.on("connection", (connection, req) => {
     })
   );
 
-  // 初次加载条数
-  const limits = 15
+  // 加载条数
+  const limits = 20
   const infoData = JSON.parse(fs.readFileSync(infoDataPath, "utf8"))
   connection.send(
     strToBase64({
@@ -117,10 +134,12 @@ wss.on("connection", (connection, req) => {
     if (data.type === "addInfoData") {
       const infoData = JSON.parse(fs.readFileSync(infoDataPath, "utf8"));
       const infoObj = {
+        type: 'text',
         id: String(Date.now() + Math.random() ).substring(2, 16),
         time: Date.now(),
         userIP: ip,
-        value: data.data,
+        value: data.data.value,
+        username: data.data.username
       };
       infoData.push(infoObj);
       fs.writeFileSync(infoDataPath, JSON.stringify(infoData, null, 2), "utf8");
@@ -128,7 +147,7 @@ wss.on("connection", (connection, req) => {
         wss,
         strToBase64({
           type: "newInfo",
-          data: infoObj,
+          data: { ...infoObj, value: data.data.value }
         })
       );
     } else if (data.type === "loadMoreInfo") {
@@ -159,3 +178,13 @@ wss.on("connection", (connection, req) => {
     console.log('connection.on("data")');
   });
 });
+
+app.listen(httpHost, () => {
+  console.log(
+    `
+      本地服务已启动
+        - ws端口为：${wsHost}
+        - http端口为：${httpHost}
+    `
+  )
+})
