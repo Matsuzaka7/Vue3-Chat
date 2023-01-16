@@ -153,6 +153,7 @@ const uploadImg = (e) => {
                 type: 'success',
                 message: '已发送！',
               })
+              setTimeout(() => scrollBottom(), 500);
             } else {
               ElMessage({
                 type: 'warning',

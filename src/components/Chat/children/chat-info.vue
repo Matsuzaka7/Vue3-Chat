@@ -6,7 +6,7 @@
       <p class="name">{{ `${item.username || ''} [${item.userIP}]` }}</p>
       <div class="chat" :class="[computedBelongToIp(item.userIP) ? 'chat-info-item-right' : 'chat-info-item-left']">
         <div class="chat-image" v-if="item.type === 'image'">
-          <img v-viewer :src="'http://127.0.0.1:1000/' + item.value" alt="[图片] 加载失败！">
+          <img v-viewer :src="httpUrl + item.value" alt="[图片] 加载失败！">
         </div>
         <div v-else-if="item.type === 'text'">
           {{ item.value }}
@@ -24,6 +24,8 @@ import { onMounted, ref, inject, watch } from 'vue'
 import TimeMessage from './time-message.vue'
 import { scrollBottom } from '../../../utils/Chat'
 
+// @ts-ignore
+const httpUrl = import.meta.env.VITE_APP_BASE_HTTP_URL
 const emit = defineEmits(['newInfoChange'])
 // 消息的背景颜色
 const bg = ref('#24292F')

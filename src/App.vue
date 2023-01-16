@@ -66,7 +66,9 @@ provide('userIP', userIP)
 provide('infoData', infoData)
 provide('username', username)
 
-const ws = new WebSocket('ws://127.0.0.1:1001');
+// @ts-ignore 
+const wsUrl = import.meta.env.VITE_APP_BASE_WSS_URL
+const ws = new WebSocket(wsUrl);
 // 接收到消息的回调
 ws.onmessage = function (evt: MessageEvent) {
   // let data = JSON.parse(evt.data)

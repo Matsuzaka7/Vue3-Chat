@@ -1,7 +1,7 @@
 import axios from 'axios'
-const baseUrl = 'http://127.0.0.1:1000/'
+// @ts-ignore 
+const baseUrl = import.meta.env.VITE_APP_BASE_HTTP_URL
 /**
- * 
  * @param name 用户名
  * @returns axios
  */
@@ -17,7 +17,6 @@ export const setUserName = (name: string) => {
 }
 
 /**
- * 
  * @param name 用户名
  * @returns axios
  */
@@ -33,7 +32,6 @@ export const getUserName = (name: string) => {
 }
 
 /**
- * 
  * @param userName 用户名
  * @param data 图片base64编码
  */
