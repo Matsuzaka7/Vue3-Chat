@@ -87,7 +87,7 @@ router.post("/getUserName", (req, res) => {
 });
 
 // 处理上传图片
-const imgPath = process.cwd() + '/assets/imgs/'
+const imgPath = process.cwd() + '/data/imgs/'
 router.post("/uploadImg", (req, res) => {
   const ip = req.connection.remoteAddress.split(":")[3];
   const form = formidable({ multiples: true });
