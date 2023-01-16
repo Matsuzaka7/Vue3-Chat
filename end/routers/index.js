@@ -103,7 +103,7 @@ router.post("/uploadImg", (req, res) => {
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
     const dataBuffer = Buffer.from(base64Data, 'base64');
     const newDate = new Date()
-    const fileName = `${newDate.getFullYear()}-${newDate.getDay()+1}-${newDate.getDate()}-${newDate.getHours()}-${newDate.getMinutes()}-${String(Math.random()).substring(2,7)}.jpg`
+    const fileName = `${newDate.getFullYear()}-${newDate.getDay()}-${newDate.getDate()}-${newDate.getHours()}-${newDate.getMinutes()}-${String(Math.random()).substring(2,7)}.jpg`
     if (base64Data.length) {
       fs.writeFile(imgPath+fileName, dataBuffer, function (err) {
         if (err) {
