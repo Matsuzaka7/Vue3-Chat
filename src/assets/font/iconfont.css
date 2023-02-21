@@ -1,6 +1,6 @@
 @font-face {
   font-family: "iconfont"; /* Project id  */
-  src: url('iconfont.ttf?t=1673764820977') format('truetype');
+  src: url('iconfont.ttf?t=1676969643885') format('truetype');
 }
 
 .iconfont {
@@ -25,5 +25,9 @@
 
 .icon-xiangzuo:before {
   content: "\eb15";
+}
+
+.icon-24gf-filePencil2:before {
+  content: "\eac4";
 }
 

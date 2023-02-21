@@ -47,3 +47,21 @@ export const uploadImageBase64 = (userName: string, data: string) => {
     data: formData
   })
 }
+
+/**
+ * @param userName 用户名
+ * @param data 文件对象
+ * @returns axios
+ */
+export const uploadFormFile = (userName: string, data: File) => {
+  const formData = new FormData()
+  formData.append('userName', userName)
+  formData.append('fileData', data, data.name)
+  
+  return axios({
+    url: baseUrl + 'uploadFile',
+    method: 'post',
+    headers: { 'Content-type' : 'multipart/form-data' },
+    data: formData
+  })
+}

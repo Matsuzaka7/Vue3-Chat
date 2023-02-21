@@ -8,6 +8,7 @@ import userRouter from './routers/index.js'
 const app = express()
 app.use(userRouter)
 app.use(express.static("data/imgs"))
+app.use(express.static("data/files"))
 
 // 创建 http ws，端口为1000
 export let wss = new WebSocketServer({ port: wsHost });

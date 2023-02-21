@@ -6,10 +6,15 @@
     </div>
     <div class="auxiliary">
       <div>
-        <input id="uploadImg" type="file" @change="uploadImg">
+        <!-- 选择图片 -->
+        <input id="uploadImg" type="file" @change="uploadImg" accept="image/*">
         <label for="uploadImg"><i class="iconfont icon-tupian"></i></label>
       </div>
-      <div><i class="iconfont icon-wenjianjia"></i></div>
+      <div>
+        <!-- 选择文件 -->
+        <input id="uploadFile" type="file" @change="uploadFile">
+        <label for="uploadFile"><i class="iconfont icon-wenjianjia"></i></label>
+      </div>
     </div>
     <div class="ChatText">
       <div class="newInfoCount" v-if="newInfoCount" @click="resetInfoCount">{{ newInfoCount }}</div>
@@ -25,7 +30,7 @@ import { ElMessage } from 'element-plus'
 import ChatInfo from './children/chat-info.vue';
 import { scrollBottom } from '../../utils/Chat'
 import { compressPicture } from '../../utils/picture'
-import { uploadImageBase64 } from '../../api/ChatApi'
+import { uploadImageBase64, uploadFormFile } from '../../api/ChatApi'
 
 const emit = defineEmits(['emitInfo', 'loadMore'])
 const textValue = ref('')
@@ -82,10 +87,7 @@ let timer = 0
 const inputChange = (e) => {
   if (e.keyCode === 13) {
     if (textValue.value.length >= 200) {
-      ElMessage({
-        message: '一段文本最大200字哦',
-        type: 'warning',
-      })
+      ElMessage({ message: '一段文本最大200字哦', type: 'warning' })
       setTimeout(() => textValue.value = textValue.value.slice(0, -1));
       return
     }
@@ -93,10 +95,7 @@ const inputChange = (e) => {
     if (!textValue.value.trim()) {
       if (timer) clearTimeout(timer)
       timer = setTimeout(() => {
-        ElMessage({
-          message: '空文本',
-          type: 'warning',
-        })
+        ElMessage({ message: '空文本', type: 'warning' })
         setTimeout(() => textValue.value = '');
       }, 600);
       return
@@ -136,49 +135,75 @@ const uploadImg = (e) => {
   const readObj = new FileReader()
   readObj.onload = () => {
     compressPicture(readObj.result as string, 70, 'image/jpeg', (data: string) => {
-      ElMessageBox.confirm(
-        '确认发送该图吗？',
-        '确认',
+      ElMessageBox.confirm( '确认发送该图吗？', '确认',
         {
           confirmButtonText: '确认',
           cancelButtonText: '取消',
           center: true,
           customClass: 'custom'
         }
-      )
-        .then(() => {
-          uploadImageBase64(userName, data).then(({ data }) => {
-            if (data.data) {
-              ElMessage({
-                type: 'success',
-                message: '已发送！',
-              })
-              setTimeout(() => scrollBottom(), 500);
-            } else {
-              ElMessage({
-                type: 'warning',
-                message: '发送失败..',
-              })
-            }
-          })
-
+      ).then(() => {
+        uploadImageBase64(userName, data).then(({ data }) => {
+          if (data.data) {
+            ElMessage({ type: 'success', message: '已发送！' })
+            setTimeout(() => scrollBottom(), 500);
+          } else {
+            ElMessage({
+              type: 'warning',
+              message: '发送失败..',
+            })
+          }
         })
-        .catch(() => {
-          ElMessage({
-            type: 'info',
-            message: '已取消',
-          })
+      }).catch(() => {
+        ElMessage({
+          type: 'info',
+          message: '已取消',
         })
-
+      })
     })
   }
   readObj.readAsDataURL(e.target.files[0])
+}
 
+// 上传文件
+const uploadFile = (e) => {
+  const fileObj = e.target.files[0]
+  // 最大 100m
+  const maxFileSize = 100 * 1024 * 1024
+  if (fileObj.size > maxFileSize) {
+    ElMessage({ type: 'warning', message: `所选文件不能大于${maxFileSize/1024/1024}M` })
+    return void 0;
+  }
+  ElMessageBox.confirm( '确认发送该文件吗？', '确认',
+    {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      center: true,
+      customClass: 'custom'
+    }
+  ).then(() => {
+    ElMessage({ type: 'info', message: '发送中..' })
+    uploadFormFile(userName, fileObj)
+    .then(({data}) => {
+      if (data.type === "saveFile" && data.data === true) {
+        ElMessage({ type: 'success', message: '已发送！' })
+      }
+    })
+    .catch(err => {
+      ElMessage({ type: 'error', message: '意外错误：' + err.message })
+    })
+  }).catch(() => {
+    ElMessage({
+      type: 'info',
+      message: '已取消',
+    })
+  })
+  
 }
 </script>
 
 <style scoped>
-#uploadImg {
+#uploadImg, #uploadFile {
   display: none;
 }
 

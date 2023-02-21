@@ -1,10 +1,11 @@
-import express from "express";
+import express, { response } from "express";
 import fs from "fs";
 import formidable from "formidable";
 import process from "process";
-import { userDataPath, infoDataPath, httpDomain } from "../config/index.js";
+import { userDataPath, infoDataPath, httpDomain, imgPath, filePath } from "../config/index.js";
 import { wss } from "../app.js";
 import { broadList, strToBase64 } from "../utils/index.js";
+import { log } from "console";
 
 const router = express.Router();
 router.use(express.urlencoded());
@@ -87,7 +88,6 @@ router.post("/getUserName", (req, res) => {
 });
 
 // 处理上传图片
-const imgPath = process.cwd() + '/data/imgs/'
 router.post("/uploadImg", (req, res) => {
   const ip = req.connection.remoteAddress.split(":")[3];
   const form = formidable({ multiples: true });
@@ -141,4 +141,67 @@ router.post("/uploadImg", (req, res) => {
     }
   });
 });
+
+const saveFile = (path, file, callback) => {
+  // 定义存储文件地址
+  let sourcePath = file.fileData.filepath;
+  let fileName = `[${Math.random().toString(16).slice(12)}]` + file.fileData.originalFilename
+
+  // 创建读写流
+  let readStream = fs.createReadStream(sourcePath);
+  let writeStream = fs.createWriteStream(path + fileName);
+  // 读写进程开始
+  readStream.pipe(writeStream);
+  // 监听读取完成事件
+  readStream.on('end', () => {
+    // 读取完成后，释放读取源文件链接
+    fs.unlinkSync(sourcePath);
+    callback(fileName);
+  });
+}
+// 上传文件
+router.post("/uploadFile", (req, res) => {
+  const ip = req.connection.remoteAddress.split(":")[3];
+  const form = formidable({ multiples: true });
+  form.parse(req, (err, fields, files) => {
+    const { userName } = fields
+    if (err) {
+      res.send({
+        type: 'err',
+        data: '意外错误E1，请稍后重试'
+      })
+      return
+    }
+
+    if (userName && files) {
+      saveFile(filePath, files, (fileName) => {
+        const infoData = JSON.parse(fs.readFileSync(infoDataPath, "utf8"));
+        const infoObj = {
+          type: 'file',
+          id: String(Date.now() + Math.random() ).substring(2, 16),
+          time: Date.now(),
+          userIP: ip,
+          value: fileName,
+          username: userName,
+          size: files.fileData.size
+        };
+        infoData.push(infoObj);
+        fs.writeFileSync(infoDataPath, JSON.stringify(infoData, null, 2), "utf8");
+        broadList(wss, strToBase64({
+          type: 'newInfo',
+          data: {...infoObj, httpDomain}
+        }))
+        res.send({
+          type: 'saveFile',
+          data: true
+        });
+      })
+    } else {
+      res.send({
+        type: 'saveFile',
+        data: false
+      });
+    }
+  })
+})
 export default router;

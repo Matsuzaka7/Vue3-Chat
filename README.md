@@ -273,3 +273,20 @@ node app.js
   - 图片保存成功
     - `{ type: 'saveImage', data: true}`
 
+
+
+## uploadFile
+
+用户上传文件时触发该事件
+
+- 请求方式：`post`
+- 需要的参数
+  - userName：用户名
+  - fileData：表单对象
+- 返回的参数
+  - 可能是form解析失败：
+    - `{ type: "err", data: '意外错误E1，请稍后重试' }`
+  - 缺少参数
+    - `{ type: "saveFile", data: false }`
+  - 保存成功
+    - `{ type: 'saveFile', data: true}`
