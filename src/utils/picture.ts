@@ -18,6 +18,10 @@ export const compressPicture = (imageBase64: string, quality: number, mimeType: 
     const ctx = canvas.getContext('2d')
     ctx?.drawImage(image, 0, 0, compressWidth, compressHeight)
     const compressPic = canvas.toDataURL(mimeType, quality / 100)
-    cb(compressPic)
+    cb({
+      imageWidth: canvas.width,
+      imageHeight: canvas.height,
+      compressPic
+    })
   }
 }

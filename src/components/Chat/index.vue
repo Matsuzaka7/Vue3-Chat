@@ -1,8 +1,9 @@
 <template>
   <div class="ChatBox">
+    <!-- 消息数 -->
     <div ref="ChatInfoEl" class="ChatInfo" @scroll="scroll">
       <div class="load" v-show="pageData.isLoad">{{ pageData.isLoad && loadText }}</div>
-      <ChatInfo @newInfoChange="newInfoChange"></ChatInfo>
+      <ChatInfo @newInfoChange="newInfoChange" :infoData="props.infoData" :userIP="props.userIP"></ChatInfo>
     </div>
     <div class="auxiliary">
       <div>
@@ -16,6 +17,7 @@
         <label for="uploadFile"><i class="iconfont icon-wenjianjia"></i></label>
       </div>
     </div>
+    <!-- 输入框 -->
     <div class="ChatText">
       <div class="newInfoCount" v-if="newInfoCount" @click="resetInfoCount">{{ newInfoCount }}</div>
       <textarea class="ChatInput" placeholder="输入内容按回车以发送.." @keydown="inputChange" v-model="textValue"></textarea>
@@ -25,14 +27,28 @@
 
 <script setup lang="ts">
 import { ref, Ref, reactive, onMounted } from 'vue'
-import { ElMessageBox } from 'element-plus'
-import { ElMessage } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
+import { scrollBottom } from '@/utils/chat'
+import { compressPicture } from '@/utils/picture'
+import { uploadImageBase64, uploadFormFile, loadMoreInfo } from '@/api/ChatApi'
 import ChatInfo from './children/chat-info.vue';
-import { scrollBottom } from '../../utils/Chat'
-import { compressPicture } from '../../utils/picture'
-import { uploadImageBase64, uploadFormFile } from '../../api/ChatApi'
 
-const emit = defineEmits(['emitInfo', 'loadMore'])
+const emit = defineEmits(['pooledData'])
+const props = defineProps({
+  infoData: {
+    type: Array,
+    default: () => []
+  },
+  userIP: {
+    type: String,
+    default: '0.0.0.0'
+  },
+  ws: {
+    type: Object,
+    default: () => ({})
+  }
+})
+
 const textValue = ref('')
 const ChatInfoEl: Ref<HTMLElement | null> = ref(null)
 const userName = localStorage.getItem('userName') || ''
@@ -42,7 +58,7 @@ const pageData = reactive({
   isMore: true,  // 是否还有更多？
   page: 1,       // 加载次数
   limit: 20,     // 每次加载的条数
-  type: ''       // 用来判断是新消息还是上划加载的消息
+  type: ''       // 用来判断是新消息(loadMoreData)还是上划加载的消息
 })
 
 let height = 0
@@ -52,7 +68,7 @@ onMounted(() => {
 
 // 数据加载成功时执行
 const loadText = ref('')
-const updatePage = ({ isMore, data }, type) => {
+const updatePage = ({ isMore }, type) => {
   queueMicrotask(() => {
     ChatInfoEl.value!.scrollTo(0, ChatInfoEl.value!.scrollHeight - height)
   });
@@ -74,16 +90,21 @@ const scroll = (e) => {
     if (!pageData.isMore) return ElMessage.error('没有更早的消息了~')
     loadText.value = '加载中..'
     pageData.isLoad = true
-    emit('loadMore', {
+    // 发送请求获取更多消息
+    loadMoreInfo({
       page: pageData.page,
       limit: pageData.limit
-    }, updatePage)
+    }).then(({ data }) => {
+      // 合并数据
+      emit('pooledData', data.data.data)
+      updatePage(data.data, 'loadMoreData')
+    })
   } else if (target.scrollHeight - (target.scrollTop + target.offsetHeight) < 40) {
     newInfoCount.value = 0
   }
 }
 
-let timer = 0
+let timer: any = 0 
 const inputChange = (e) => {
   if (e.keyCode === 13) {
     if (textValue.value.length >= 200) {
@@ -97,14 +118,21 @@ const inputChange = (e) => {
       timer = setTimeout(() => {
         ElMessage({ message: '空文本', type: 'warning' })
         setTimeout(() => textValue.value = '');
-      }, 600);
+      }, 400);
       return
     }
 
     newInfoCount.value = 0
-    emit('emitInfo', textValue.value)
+    // 提交消息给服务器
+    props.ws.send(JSON.stringify({
+      type: 'addInfoData',
+      data: {
+        value: textValue.value,
+        username: localStorage.getItem('userName')
+      }
+    }))
     setTimeout(() => textValue.value = '')
-    setTimeout(() => scrollBottom(), 100);
+    setTimeout(() => scrollBottom(), 50);
   }
 }
 
@@ -116,6 +144,7 @@ const newInfoChange = () => {
   pageData.type = ''
 }
 
+// 点击新消息计数器
 const resetInfoCount = () => {
   newInfoCount.value = 0;
   setTimeout(() => scrollBottom(), 100);
@@ -127,14 +156,15 @@ const uploadImg = (e) => {
   if (!type.includes('image')) {
     ElMessage({
       type: 'error',
-      message: '仅支持png与jpg格式哦',
+      message: '仅支持图片格式哦',
     })
     return
   }
 
   const readObj = new FileReader()
   readObj.onload = () => {
-    compressPicture(readObj.result as string, 70, 'image/jpeg', (data: string) => {
+    compressPicture(readObj.result as string, 70, 'image/jpeg', (data: object) => {
+      console.log(data)
       ElMessageBox.confirm( '确认发送该图吗？', '确认',
         {
           confirmButtonText: '确认',
@@ -146,7 +176,7 @@ const uploadImg = (e) => {
         uploadImageBase64(userName, data).then(({ data }) => {
           if (data.data) {
             ElMessage({ type: 'success', message: '已发送！' })
-            setTimeout(() => scrollBottom(), 500);
+            setTimeout(() => scrollBottom(), 300);
           } else {
             ElMessage({
               type: 'warning',

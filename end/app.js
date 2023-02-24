@@ -1,14 +1,22 @@
 import fs from "fs"
 import ws, { WebSocketServer } from "ws"
 import express from "express"
-import { wsHost, httpHost, infoDataPath, userDataPath } from "./config/index.js"
+import history from "connect-history-api-fallback"
+import { wsHost, httpHost, infoDataPath, userDataPath, limits } from "./config/index.js"
 import { broadList, strToBase64 } from './utils/index.js'
 import userRouter from './routers/index.js'
+import { wsPrivate } from './routers/wsPrivate.js'
 
 const app = express()
 app.use(userRouter)
 app.use(express.static("data/imgs"))
 app.use(express.static("data/files"))
+app.use(history({
+  // 如果是该连接，则不跳转
+  rewrites: [
+    
+  ]
+}))
 
 // 创建 http ws，端口为1000
 export let wss = new WebSocketServer({ port: wsHost });
@@ -35,7 +43,15 @@ function heartbeat() {
 
 wss.on("connection", (connection, req) => {
   const ip = req.connection.remoteAddress.split(":")[3];
+  const search = req.url.slice(1)
+  // search 有值代表私聊
+  if (search.trim()) {
+    wsPrivate(wss, connection, ip)
+    return void 0;
+  }
+
   connection.isAlive = true;
+  connection.ip = ip
   connection.on("pong", heartbeat);
   // 用户每次访问时都返回一次ip给用户
   connection.send(
@@ -90,7 +106,6 @@ wss.on("connection", (connection, req) => {
   );
 
   // 加载条数
-  const limits = 20
   const infoData = JSON.parse(fs.readFileSync(infoDataPath, "utf8"))
   connection.send(
     strToBase64({
@@ -149,19 +164,6 @@ wss.on("connection", (connection, req) => {
         strToBase64({
           type: "newInfo",
           data: { ...infoObj, value: data.data.value }
-        })
-      );
-    } else if (data.type === "loadMoreInfo") {
-      const { page, limit } = data.data
-      const infoData = JSON.parse(fs.readFileSync(infoDataPath, "utf8"));
-      const sliceData = infoData.slice(-(limits + page * limit), -(limit + (page-1) *limit))
-      connection.send(
-        strToBase64({
-          type: "loadMoreData",
-          data: {
-            isMore: sliceData.length === 0 ? false : true,
-            data: sliceData
-          },
         })
       );
     }

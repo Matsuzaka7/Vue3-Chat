@@ -1,13 +1,11 @@
-import axios from 'axios'
-// @ts-ignore 
-const baseUrl = import.meta.env.VITE_APP_BASE_HTTP_URL
+import request from "../utils/request"
 /**
  * @param name 用户名
  * @returns axios
  */
 export const setUserName = (name: string) => {
-  return axios({
-    url: baseUrl + 'setUserName',
+  return request({
+    url: 'setUserName',
     method: 'post',
     headers: { "content-type": "application/x-www-form-urlencoded"},
     data: {
@@ -21,8 +19,8 @@ export const setUserName = (name: string) => {
  * @returns axios
  */
 export const getUserName = (name: string) => {
-  return axios({
-    url: baseUrl + 'getUserName',
+  return request({
+    url: 'getUserName',
     method: 'post',
     headers: { "content-type": "application/x-www-form-urlencoded"},
     data: {
@@ -32,16 +30,32 @@ export const getUserName = (name: string) => {
 }
 
 /**
+ * 获取更多数据
+ * @param name 用户名
+ * @returns axios
+ */
+export const loadMoreInfo = (data: {}) => {
+  return request({
+    url: 'loadMoreInfo',
+    method: 'post',
+    headers: { "content-type": "application/x-www-form-urlencoded"},
+    data
+  })
+}
+
+/**
  * @param userName 用户名
  * @param data 图片base64编码
  */
-export const uploadImageBase64 = (userName: string, data: string) => {
+export const uploadImageBase64 = (userName: string, data: obj) => {
   // const file = new File([data], 'imageBase64')
   const formData = new FormData()
   formData.append('userName', userName)
-  formData.append('imageBase64', data)
-  return axios({
-    url: baseUrl + 'uploadImg',
+  formData.append('imageWidth', data.imageWidth)
+  formData.append('imageHeight', data.imageHeight)
+  formData.append('imageBase64', data.compressPic)
+  return request({
+    url: 'uploadImg',
     method: 'post',
     headers: { "content-type": "application/x-www-form-urlencoded"},
     data: formData
@@ -58,8 +72,8 @@ export const uploadFormFile = (userName: string, data: File) => {
   formData.append('userName', userName)
   formData.append('fileData', data, data.name)
   
-  return axios({
-    url: baseUrl + 'uploadFile',
+  return request({
+    url: 'uploadFile',
     method: 'post',
     headers: { 'Content-type' : 'multipart/form-data' },
     data: formData

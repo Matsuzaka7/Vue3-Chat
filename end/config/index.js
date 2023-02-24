@@ -12,4 +12,6 @@ export const userDataPath = path.resolve('data/userData.json')
 export const imgPath = process.cwd() + '/data/imgs/'
 // 文件保存地址
 export const filePath = process.cwd() + '/data/files/'
+// 聊天加载条数
+export const limits = 20
 

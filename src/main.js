@@ -1,17 +1,18 @@
 import { createApp } from "vue";
-
-import App from "./App.vue";
-import { resizeChange } from "./utils/Chat";
-import "./assets/font/iconfont.css";
-import "./assets/font/iconfont.ttf";
+import { createPinia } from 'pinia'
 import VueViewer from "v-viewer";
 
-resizeChange();
-window.addEventListener("storage", (e) => {
-  localStorage.setItem(e.key, e.oldValue);
-});
+import { resizeChange } from "./utils/Chat";
+import router from './router'
+import App from "./App.vue";
+
+import "./assets/font/iconfont.css";
+import "./assets/font/iconfont.ttf";
 
 const app = createApp(App);
+const store = createPinia()
+app.use(store)
+app.use(router)
 app.use(VueViewer, {
   defaultOptions: {
     button: false,
@@ -21,3 +22,8 @@ app.use(VueViewer, {
   }
 });
 app.mount("#app");
+
+resizeChange();
+window.addEventListener("storage", (e) => {
+  localStorage.setItem(e.key, e.oldValue);
+});

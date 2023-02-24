@@ -2,10 +2,9 @@ import express, { response } from "express";
 import fs from "fs";
 import formidable from "formidable";
 import process from "process";
-import { userDataPath, infoDataPath, httpDomain, imgPath, filePath } from "../config/index.js";
+import { userDataPath, infoDataPath, httpDomain, imgPath, filePath, limits } from "../config/index.js";
 import { wss } from "../app.js";
 import { broadList, strToBase64 } from "../utils/index.js";
-import { log } from "console";
 
 const router = express.Router();
 router.use(express.urlencoded());
@@ -87,12 +86,31 @@ router.post("/getUserName", (req, res) => {
   fs.writeFileSync(userDataPath, JSON.stringify(infoData, null, 2), "utf8");
 });
 
+// 加载更多消息
+router.post("/loadMoreInfo", (req, res) => {
+  const { page, limit } = req.body
+  if (!page && !limit) {
+    req.send({ type: 'err', data: '缺少参数' })
+    return 
+  }
+  const infoData = JSON.parse(fs.readFileSync(infoDataPath, "utf8"));
+  const sliceData = infoData.slice(-(limits + +page * limit), -(limits + (+page-1) *limit))
+
+  res.send({
+    type: 'loadMoreData',
+    data: {
+      isMore: sliceData.length === 0 ? false : true,
+      data: sliceData
+    }
+  })
+})
+
 // 处理上传图片
 router.post("/uploadImg", (req, res) => {
   const ip = req.connection.remoteAddress.split(":")[3];
   const form = formidable({ multiples: true });
   form.parse(req, (err, fields, files) => {
-    const { userName, imageBase64 } = fields
+    const { userName, imageBase64, imageWidth, imageHeight } = fields
     if (err) {
       res.send({
         type: 'err',
@@ -113,8 +131,11 @@ router.post("/uploadImg", (req, res) => {
           });
         } else {
           const infoData = JSON.parse(fs.readFileSync(infoDataPath, "utf8"));
+
           const infoObj = {
             type: 'image',
+            imageWidth: imageWidth || 0,
+            imageHeight: imageHeight || 0,
             id: String(Date.now() + Math.random() ).substring(2, 16),
             time: Date.now(),
             userIP: ip,

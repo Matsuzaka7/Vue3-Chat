@@ -208,20 +208,6 @@ node app.js
 
 
 
-## loadMoreInfo
-
-用户滚动到顶部时，加载更多数据将会发送该类型给服务器，服务器收到后将会返回 `loadMoreData`
-
-```js
-{
-    type: 'loadMoreInfo',
-    data: {
-        page, // 当前页数
-        limit // 每页的条数
-    }
-}
-```
-
 
 
 # http请求解释
@@ -290,3 +276,20 @@ node app.js
     - `{ type: "saveFile", data: false }`
   - 保存成功
     - `{ type: 'saveFile', data: true}`
+
+
+
+## loadMoreInfo
+
+用户滚动到顶部时，加载更多数据将会发送该类型给服务器，服务器收到后将会返回 `loadMoreData`
+
+```js
+{
+    type: 'loadMoreInfo',
+    data: {
+        page, // 当前页数
+        limit // 每页的条数
+    }
+}
+```
+
