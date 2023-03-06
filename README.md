@@ -11,30 +11,24 @@ npm install
 npm run dev
 ```
 
-
-
 ## 启动后端
 
-**打开end目录 输入以下命令**
+**打开 end 目录 输入以下命令**
 
 ```bash
 npm install
 node app.js
 ```
 
-
-
 ## 注意
 
 启动后如果连接失败，
 
-请找到 `根目录/.env` 文件，修改其中的 `VITE_APP_BASE_WSS_URL` 与 `VITE_APP_BASE_HTTP_URL` 变量为本机ip
+请找到 `根目录/.env` 文件，修改其中的 `VITE_APP_BASE_WSS_URL` 与 `VITE_APP_BASE_HTTP_URL` 变量为本机 ip
 
-本机ip查看方法：`ipconfig` 
+本机 ip 查看方法：`ipconfig`
 
-
-
-# ws响应消息解释
+# ws 响应消息解释
 
 通常，消息会以以下格式返回
 
@@ -45,13 +39,11 @@ node app.js
 }
 ```
 
-> 并且所有响应消息会以base64的形式进行传输，可自行加密
-
-
+> 并且所有响应消息会以 base64 的形式进行传输，可自行加密
 
 ## userIP
 
-当用户初次访问网站时，服务器会获取一次ip，并且返回给用户作为名称的唯一标识
+当用户初次访问网站时，服务器会获取一次 ip，并且返回给用户作为名称的唯一标识
 
 ```js
 {
@@ -59,8 +51,6 @@ node app.js
     data: ip,
 }
 ```
-
-
 
 ## notice
 
@@ -73,11 +63,9 @@ node app.js
 }
 ```
 
-
-
 ## infoData
 
-当用户初次访问网站时，服务器会给用户当前所有的消息（后续会改为：只给20条，更多的需要上拉进行加载）
+当用户初次访问网站时，服务器会给用户当前所有的消息（后续会改为：只给 20 条，更多的需要上拉进行加载）
 
 ```js
 {
@@ -92,8 +80,6 @@ node app.js
     ]
 }
 ```
-
-
 
 ## newInfo
 
@@ -111,8 +97,6 @@ node app.js
 }
 ```
 
-
-
 ## personList
 
 每当有一个用户访问网站时，会给当前所有已连接的用户发送当前的用户列表
@@ -125,8 +109,6 @@ node app.js
     }
 }
 ```
-
-
 
 ## loadMoreData
 
@@ -142,13 +124,11 @@ node app.js
 }
 ```
 
-
-
 ## findUserName
 
-> 该类型本应该在http请求中，但忘记迁移过去了。先用着
+> 该类型本应该在 http 请求中，但忘记迁移过去了。先用着
 
-用户进入时根据ip查找一次用户名返回给用户，查找成功时返回
+用户进入时根据 ip 查找一次用户名返回给用户，查找成功时返回
 
 ```js
 {
@@ -157,13 +137,11 @@ node app.js
 }
 ```
 
-
-
 ## notUser
 
-> 该类型本应该在http请求中，但忘记迁移过去了。先用着
+> 该类型本应该在 http 请求中，但忘记迁移过去了。先用着
 
-用户进入时根据ip查找一次用户名返回给用户，查找失败时返回
+用户进入时根据 ip 查找一次用户名返回给用户，查找失败时返回
 
 ```js
 {
@@ -172,11 +150,9 @@ node app.js
 }
 ```
 
-
-
 ## ~~rejectWs~~
 
-当用户在同一ip打开了多个页面时，会返回该类型数据，并且程序不会往下执行
+当用户在同一 ip 打开了多个页面时，会返回该类型数据，并且程序不会往下执行
 
 ```js
 {
@@ -187,13 +163,9 @@ node app.js
 
 > 该类型被废弃，在后端中已注释
 
-
-
-# ws请求消息解释
+# ws 请求消息解释
 
 客户端（用户）主动给服务器发送消息的解释
-
-
 
 ## addInfoData
 
@@ -206,11 +178,7 @@ node app.js
 }
 ```
 
-
-
-
-
-# http请求解释
+# http 请求解释
 
 ## setUserName
 
@@ -225,11 +193,9 @@ node app.js
   - 名称重复：`{ type: "rejectUserName", data: false }`
   - 设置成功：`{ type: "succeedUserName", data: true }`
 
-
-
 ## getUserName
 
-如果取过名的用户的ip变化了，则触发该请求。用于获取新ip与用户名
+如果取过名的用户的 ip 变化了，则触发该请求。用于获取新 ip 与用户名
 
 - 请求方式：`post`
 
@@ -240,26 +206,22 @@ node app.js
   - 查找成功：`{ type: "succeedUserName", data: true }`
   - 查找失败：`{ type: "notUser", data: false }`
 
-
-
 ## uploadImg
 
 当用户上传图片时触发该事件
 
 - 请求方式：`post`
 - 需要的参数：
-  - 图片的base64格式，并且使用formData包裹的对象
+  - 图片的 base64 格式，并且使用 formData 包裹的对象
 - 返回的参数：
-  - 可能是form解析失败：
+  - 可能是 form 解析失败：
     - `{ type: "err", data: '意外错误E1，请稍后重试' }`
-  - 图片的base64没有接收到
+  - 图片的 base64 没有接收到
     - `{ type: "err", data: '意外错误E2，请稍后重试' }`
   - 图片保存失败，可能是没有该路径，请检查路径
     - `{ type: 'saveImage', data: false }`
   - 图片保存成功
     - `{ type: 'saveImage', data: true}`
-
-
 
 ## uploadFile
 
@@ -270,14 +232,12 @@ node app.js
   - userName：用户名
   - fileData：表单对象
 - 返回的参数
-  - 可能是form解析失败：
+  - 可能是 form 解析失败：
     - `{ type: "err", data: '意外错误E1，请稍后重试' }`
   - 缺少参数
     - `{ type: "saveFile", data: false }`
   - 保存成功
     - `{ type: 'saveFile', data: true}`
-
-
 
 ## loadMoreInfo
 
@@ -292,4 +252,3 @@ node app.js
     }
 }
 ```
-
