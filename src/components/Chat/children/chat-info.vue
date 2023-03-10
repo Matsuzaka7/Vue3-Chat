@@ -12,9 +12,9 @@
             v-viewer 
             :src="httpUrl + item.value" alt="[图片] 加载失败！" 
             :style="{ 
-              height: item.imageHeight > item.imageWidth ? 
-              window.innerWidth * 0.4 * (item.imageHeight / item.imageWidth) + 'px' : 
-              window.innerHeight * 0.4 + 'px'
+              // height: item.imageHeight > item.imageWidth ? 
+              // window.innerWidth * 0.4 * (item.imageHeight / item.imageWidth) + 'px' : 
+              // window.innerHeight * 0.4 + 'px'
             }"
           >
         </div>
