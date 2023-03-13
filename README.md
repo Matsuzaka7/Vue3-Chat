@@ -128,19 +128,6 @@ node app.js
 
 
 
-## loadMoreData
-
-用户滚动到顶部时触发的事件，服务器将会返回更多聊天数据给用户
-
-```js
-{
-    type: "loadMoreData",
-    data: {
-        isMore: boolean, // 表示告诉用户是否还有更多数据
-        data: []	 	 // 返回的数据
-    }
-}
-```
 
 ## notUser
 
@@ -265,13 +252,19 @@ node app.js
 ## loadMoreInfo
 
 用户滚动到顶部时，加载更多数据将会发送该类型给服务器，服务器收到后将会返回 `loadMoreData`
+- 请求方式：`post`
+- 请求路径: `loadMoreInfo`
+- 需要的参数
+    - page, // 当前页数
+    - limit // 每页的条数
 
-```js
+- 返回的参数
+    - ```js
 {
-    type: 'loadMoreInfo',
+    type: "loadMoreData",
     data: {
-        page, // 当前页数
-        limit // 每页的条数
+        isMore: boolean, // 表示告诉用户是否还有更多数据
+        data: []	 	 // 返回的数据
     }
 }
 ```
