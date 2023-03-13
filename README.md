@@ -142,23 +142,6 @@ node app.js
 }
 ```
 
-
-
-## findUserName
-
-> 该类型本应该在http请求中，但忘记迁移过去了。先用着
-
-用户进入时根据ip查找一次用户名返回给用户，查找成功时返回
-
-```js
-{
-    type: "findUserName",
-    data: 查找到的用户名
-}
-```
-
-
-
 ## notUser
 
 > 该类型本应该在http请求中，但忘记迁移过去了。先用着
