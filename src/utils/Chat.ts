@@ -37,25 +37,25 @@ function scrollTo(element, to, duration) {
  * 滚动到底部的函数
  * @param immediate 是否关闭滑动效果 - 默认false
  */
-export function scrollBottom(immediate: boolean = false) {
-  const last_child = document.querySelector(".chat-info-container:last-child");
-  if (immediate) {
-    last_child.scrollIntoView();
-    return 
-  }
-  
-  const container = document.querySelector(".ChatInfo");
-  if (last_child) {
-    scrollTo(container, last_child.offsetTop, 500);
-  } 
+export function scrollBottom(immediate: boolean = false, time = 500) {
+  queueMicrotask(() => {
+    const last_child = document.querySelector(".chat-info-container:last-child") as HTMLElement;
+    if (immediate) {
+      last_child.scrollIntoView();
+      return 
+    }
+    
+    const container = document.querySelector(".chat-info");
+    scrollTo(container, last_child.offsetTop, time);
+  })
 }
 
 // 当页面大小变化时, 是否需要滚动到底部？
 export function resizeChange() {
   setTimeout(() => {
-    let ChatInfo: HTMLDivElement = document.querySelector(".ChatInfo")!;
+    let chatInfo: HTMLDivElement = document.querySelector(".chat-info")!;
     const cancelDebounce = debounce(() => {
-      if (ChatInfo.scrollHeight - (ChatInfo.offsetHeight + ChatInfo.scrollTop) <= window.innerHeight / 3) {
+      if (chatInfo.scrollHeight - (chatInfo.offsetHeight + chatInfo.scrollTop) <= window.innerHeight / 3) {
         setTimeout(() => scrollBottom());
       }
     }, 200)

@@ -13,7 +13,6 @@ export const broadList = (wss, data) => {
   });
 };
 
-
 /**
  * 加入私聊
  * @param wss ws实例

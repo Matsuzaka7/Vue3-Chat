@@ -3,9 +3,9 @@
     <div class="desc">
       <h1 class="title">
         <i v-if="props.title === 1" class="iconfont icon-xiangzuo" @click="backGroup"></i> 
-        {{ props.title === 0 ? '砂糖聊天室' : `正在和${privateS.carriedIP}聊天` }}
+        {{ props.title === 0 ? '砂糖聊天室' : `正在和${store.private.carriedIP}聊天` }}
       </h1>
-      <span class="personLength" v-if="props.title === 0">当前人数：{{ props.wsData?.personList?.length || 0 }}人</span>
+      <span class="person-length" v-if="props.title === 0">当前人数：{{ props.persons?.personList?.length || 0 }}人</span>
     </div>
   </div>
 </template>
@@ -13,8 +13,6 @@
 <script setup lang="ts">
 import Store from '@/store';
 import { useRouter } from 'vue-router'
-import privateStore from '@/store/privateStore'
-const privateS = privateStore()
 
 const store = Store()
 const router = useRouter()
@@ -23,7 +21,7 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  wsData: {
+  persons: {
     type: Object,
     default: () => ({ personList: [] })
   },
@@ -40,33 +38,28 @@ const backGroup = () => {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .icon-xiangzuo {
-  font-size: 3.2vh;
+  font-size: 5.5vw;
   font-weight: 100;
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   color: #fff;
-  border-bottom: 1px solid #eee;
   padding: 15px 35px 5px;
-  margin: -10px -15px;
+  margin: -10px -15px 0;
   transition: all 0.3s;
-}
-
-.desc {
-  display: flex;
-  align-items: baseline;
-}
-
-.title {
-  font-size: 3.2vh;
-  padding: 8px 6px;
-}
-.personLength {
-  font-size: 1.8vh;
+  box-shadow: 0 0 10px -3px #333;
+  .desc {
+    display: flex;
+    align-items: baseline;
+    .title {
+      font-size: 5.5vw;
+      padding: 8px 6px;
+    }
+    .person-length {
+      font-size: 3.2vw;
+    }
+  }
 }
 </style>

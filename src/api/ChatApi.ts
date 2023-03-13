@@ -1,5 +1,7 @@
-import request from "../utils/request"
+import request from "@/utils/request"
+import { loadMoreInfoType, uploadImageBase64Type } from '@/types/chatApiType'
 /**
+ * 设置用户名
  * @param name 用户名
  * @returns axios
  */
@@ -7,7 +9,6 @@ export const setUserName = (name: string) => {
   return request({
     url: 'setUserName',
     method: 'post',
-    headers: { "content-type": "application/x-www-form-urlencoded"},
     data: {
       name
     }
@@ -15,6 +16,7 @@ export const setUserName = (name: string) => {
 }
 
 /**
+ * 获取用户名
  * @param name 用户名
  * @returns axios
  */
@@ -22,7 +24,6 @@ export const getUserName = (name: string) => {
   return request({
     url: 'getUserName',
     method: 'post',
-    headers: { "content-type": "application/x-www-form-urlencoded"},
     data: {
       name
     }
@@ -31,38 +32,38 @@ export const getUserName = (name: string) => {
 
 /**
  * 获取更多数据
- * @param name 用户名
- * @returns axios
+ * @param data (page, limit)
+ * @returns axiosRes
  */
-export const loadMoreInfo = (data: {}) => {
+export const loadMoreInfo = (data: loadMoreInfoType) => {
   return request({
     url: 'loadMoreInfo',
     method: 'post',
-    headers: { "content-type": "application/x-www-form-urlencoded"},
     data
   })
 }
 
 /**
+ * 发送图片
  * @param userName 用户名
- * @param data 图片base64编码
+ * @param data ( imageWidth, imageHeight, compressPic )
+ * @returns axios
  */
-export const uploadImageBase64 = (userName: string, data: obj) => {
-  // const file = new File([data], 'imageBase64')
+export const uploadImageBase64 = (userName: string, data: uploadImageBase64Type) => {
   const formData = new FormData()
   formData.append('userName', userName)
-  formData.append('imageWidth', data.imageWidth)
-  formData.append('imageHeight', data.imageHeight)
+  formData.append('imageWidth', String(data.imageWidth))
+  formData.append('imageHeight', String(data.imageHeight))
   formData.append('imageBase64', data.compressPic)
   return request({
     url: 'uploadImg',
     method: 'post',
-    headers: { "content-type": "application/x-www-form-urlencoded"},
     data: formData
   })
 }
 
 /**
+ * 发送文件
  * @param userName 用户名
  * @param data 文件对象
  * @returns axios

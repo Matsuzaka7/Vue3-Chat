@@ -2,17 +2,17 @@ import fs from "fs"
 import ws, { WebSocketServer } from "ws"
 import express from "express"
 import history from "connect-history-api-fallback"
-import { wsHost, httpHost, infoDataPath, userDataPath, limits } from "./config/index.js"
+import { wsHost, httpHost, infoDataPath, userDataPath, privatePath, limits } from "./config/index.js"
 import { broadList, strToBase64 } from './utils/index.js'
 import userRouter from './routers/index.js'
-import { wsPrivate } from './routers/wsPrivate.js'
+import { wsPrivate, findTargetUser } from './routers/wsPrivate.js'
+import { info } from "console"
 
 const app = express()
 app.use(userRouter)
 app.use(express.static("data/imgs"))
 app.use(express.static("data/files"))
 app.use(history({
-  // 如果是该连接，则不跳转
   rewrites: [
     
   ]
@@ -43,10 +43,35 @@ function heartbeat() {
 
 wss.on("connection", (connection, req) => {
   const ip = req.connection.remoteAddress.split(":")[3];
-  const search = req.url.slice(1)
-  // search 有值代表私聊
-  if (search.trim()) {
-    wsPrivate(wss, connection, ip)
+  const targetIP = req.url.slice(1)
+  // targetIP 有值代表私聊
+  if (targetIP.trim()) {
+    // 有人加入私聊（需要初始化两人聊天的记录）
+    wsPrivate(wss, connection, ip, targetIP)
+    connection.on("message", function (connectionData, reason) {
+      const data = JSON.parse(connectionData.toString());
+      // 处理客户端发送过来的私聊消息
+      if (data.type === "addInfoData") {
+        const sort = [ip, targetIP].sort()
+        const path = privatePath + `${sort[0]}-${sort[1]}.json`
+        const infoData = JSON.parse(fs.readFileSync(path, "utf8"));
+        const infoObj = {
+          type: 'text',
+          id: String(Date.now() + Math.random() ).substring(2, 16),
+          time: Date.now(),
+          userIP: ip,
+          value: data.data.value,
+          username: data.data.username
+        };
+        infoData.push(infoObj);
+        fs.writeFileSync(path, JSON.stringify(infoData, null, 2), "utf8");
+        // 将消息只发给我和目标人物
+        findTargetUser(wss, connection, targetIP, strToBase64({
+          type: "privateNewInfo",
+          data: { ...infoObj, value: data.data.value }
+        }))
+      }
+    });
     return void 0;
   }
 
@@ -87,16 +112,6 @@ wss.on("connection", (connection, req) => {
       client.ping();
     });
   }, 10000);
-
-  /* // 代表重复的ip进入了网站，让客户端直接断掉请求
-  if (personList.includes(ip)) {
-    const reject = {
-      type: 'rejectWs',
-      data: '同一ip请勿同时打开多个网页'
-    }
-    connection.send(JSON.stringify(reject))
-    return
-  } */
 
   connection.send(
     strToBase64({

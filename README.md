@@ -126,24 +126,6 @@ node app.js
 }
 ```
 
-
-
-
-## notUser
-
-> 该类型本应该在http请求中，但忘记迁移过去了。先用着
-
-用户进入时根据ip查找一次用户名返回给用户，查找失败时返回
-
-```js
-{
-    type: "notUser",
-    data: false
-}
-```
-
-
-
 ## ~~rejectWs~~
 
 当用户在同一ip打开了多个页面时，会返回该类型数据，并且程序不会往下执行
@@ -253,19 +235,23 @@ node app.js
 
 用户滚动到顶部时，加载更多数据将会发送该类型给服务器，服务器收到后将会返回 `loadMoreData`
 - 请求方式：`post`
+
 - 请求路径: `loadMoreInfo`
+
 - 需要的参数
-    - page, // 当前页数
-    - limit // 每页的条数
+    - page：当前页数
+    - limit：每页的条数
 
 - 返回的参数
-    - ```js
-{
-    type: "loadMoreData",
-    data: {
-        isMore: boolean, // 表示告诉用户是否还有更多数据
-        data: []	 	 // 返回的数据
+    
+    ```js
+    {
+    	type: "loadMoreData",
+        data: {
+            isMore: boolean, // 表示告诉用户是否还有更多数据
+            data: []	 	 // 返回的数据
+        }
     }
-}
-```
-
+    ```
+    
+    

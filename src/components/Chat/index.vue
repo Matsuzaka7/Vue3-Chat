@@ -1,37 +1,26 @@
 <template>
-  <div class="ChatBox">
+  <div class="chat-container">
     <!-- 消息数 -->
-    <div ref="ChatInfoEl" class="ChatInfo" @scroll="scroll">
+    <div ref="ChatInfoEl" class="chat-info" @scroll="scroll">
       <div class="load" v-show="pageData.isLoad">{{ pageData.isLoad && loadText }}</div>
       <ChatInfo @newInfoChange="newInfoChange" :infoData="props.infoData" :userIP="props.userIP"></ChatInfo>
     </div>
-    <div class="auxiliary">
-      <div>
-        <!-- 选择图片 -->
-        <input id="uploadImg" type="file" @change="uploadImg" accept="image/*">
-        <label for="uploadImg"><i class="iconfont icon-tupian"></i></label>
-      </div>
-      <div>
-        <!-- 选择文件 -->
-        <input id="uploadFile" type="file" @change="uploadFile">
-        <label for="uploadFile"><i class="iconfont icon-wenjianjia"></i></label>
-      </div>
-    </div>
+    <Auxiliary></Auxiliary>
     <!-- 输入框 -->
-    <div class="ChatText">
-      <div class="newInfoCount" v-if="newInfoCount" @click="resetInfoCount">{{ newInfoCount }}</div>
-      <textarea class="ChatInput" placeholder="输入内容按回车以发送.." @keydown="inputChange" v-model="textValue"></textarea>
+    <div class="chat-text">
+      <div class="new-info-count" v-if="newInfoCount" @click="resetInfoCount">{{ newInfoCount }}</div>
+      <textarea class="chat-input" placeholder="输入内容按回车以发送.." @keydown.enter="inputChange" v-model="textValue"></textarea>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, Ref, reactive, onMounted } from 'vue'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { scrollBottom } from '@/utils/chat'
-import { compressPicture } from '@/utils/picture'
-import { uploadImageBase64, uploadFormFile, loadMoreInfo } from '@/api/ChatApi'
-import ChatInfo from './children/chat-info.vue';
+import { loadMoreInfo } from '@/api/ChatApi'
+import ChatInfo from './components/chat-info.vue';
+import Auxiliary from './components/auxiliary.vue'
 
 const emit = defineEmits(['pooledData'])
 const props = defineProps({
@@ -51,7 +40,6 @@ const props = defineProps({
 
 const textValue = ref('')
 const ChatInfoEl: Ref<HTMLElement | null> = ref(null)
-const userName = localStorage.getItem('userName') || ''
 
 const pageData = reactive({
   isLoad: false, // 正在加载中？
@@ -104,38 +92,39 @@ const scroll = (e) => {
   }
 }
 
-let timer: any = 0 
+let timer: any = 0
 const inputChange = (e) => {
-  if (e.keyCode === 13) {
-    if (textValue.value.length >= 200) {
-      ElMessage({ message: '一段文本最大200字哦', type: 'warning' })
-      setTimeout(() => textValue.value = textValue.value.slice(0, -1));
-      return
-    }
-
-    if (!textValue.value.trim()) {
-      if (timer) clearTimeout(timer)
-      timer = setTimeout(() => {
-        ElMessage({ message: '空文本', type: 'warning' })
-        setTimeout(() => textValue.value = '');
-      }, 400);
-      return
-    }
-
-    newInfoCount.value = 0
-    // 提交消息给服务器
-    props.ws.send(JSON.stringify({
-      type: 'addInfoData',
-      data: {
-        value: textValue.value,
-        username: localStorage.getItem('userName')
-      }
-    }))
-    setTimeout(() => textValue.value = '')
-    setTimeout(() => scrollBottom(), 50);
+  if (textValue.value.length >= 200) {
+    ElMessage({ message: '一段文本最大200字哦', type: 'warning' })
+    setTimeout(() => textValue.value = textValue.value.slice(0, -1));
+    return
   }
+
+  if (!textValue.value.trim()) {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => {
+      ElMessage({ message: '空文本', type: 'warning' })
+      setTimeout(() => textValue.value = '');
+    }, 400);
+    return
+  }
+
+  newInfoCount.value = 0
+  // 提交消息给服务器
+  props.ws.send(JSON.stringify({
+    type: 'addInfoData',
+    data: {
+      value: textValue.value,
+      username: localStorage.getItem('userName')
+    }
+  }))
+  setTimeout(() => {
+    textValue.value = ''
+    scrollBottom()
+  })
 }
 
+// 新消息数量
 const newInfoCount = ref(0)
 const newInfoChange = () => {
   if (pageData.type !== 'loadMoreData') {
@@ -144,177 +133,75 @@ const newInfoChange = () => {
   pageData.type = ''
 }
 
-// 点击新消息计数器
+// 点击新消息计数器滚到底部
 const resetInfoCount = () => {
   newInfoCount.value = 0;
-  setTimeout(() => scrollBottom(), 100);
-}
-
-// 上传图片
-const uploadImg = (e) => {
-  const { type } = e.target.files[0]
-  if (!type.includes('image')) {
-    ElMessage({
-      type: 'error',
-      message: '仅支持图片格式哦',
-    })
-    return
-  }
-
-  const readObj = new FileReader()
-  readObj.onload = () => {
-    compressPicture(readObj.result as string, 70, 'image/jpeg', (data: object) => {
-      console.log(data)
-      ElMessageBox.confirm( '确认发送该图吗？', '确认',
-        {
-          confirmButtonText: '确认',
-          cancelButtonText: '取消',
-          center: true,
-          customClass: 'custom'
-        }
-      ).then(() => {
-        uploadImageBase64(userName, data).then(({ data }) => {
-          if (data.data) {
-            ElMessage({ type: 'success', message: '已发送！' })
-            setTimeout(() => scrollBottom(), 300);
-          } else {
-            ElMessage({
-              type: 'warning',
-              message: '发送失败..',
-            })
-          }
-        })
-      }).catch(() => {
-        ElMessage({
-          type: 'info',
-          message: '已取消',
-        })
-      })
-    })
-  }
-  readObj.readAsDataURL(e.target.files[0])
-}
-
-// 上传文件
-const uploadFile = (e) => {
-  const fileObj = e.target.files[0]
-  // 最大 100m
-  const maxFileSize = 100 * 1024 * 1024
-  if (fileObj.size > maxFileSize) {
-    ElMessage({ type: 'warning', message: `所选文件不能大于${maxFileSize/1024/1024}M` })
-    return void 0;
-  }
-  ElMessageBox.confirm( '确认发送该文件吗？', '确认',
-    {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      center: true,
-      customClass: 'custom'
-    }
-  ).then(() => {
-    ElMessage({ type: 'info', message: '发送中..' })
-    uploadFormFile(userName, fileObj)
-    .then(({data}) => {
-      if (data.type === "saveFile" && data.data === true) {
-        ElMessage({ type: 'success', message: '已发送！' })
-      }
-    })
-    .catch(err => {
-      ElMessage({ type: 'error', message: '意外错误：' + err.message })
-    })
-  }).catch(() => {
-    ElMessage({
-      type: 'info',
-      message: '已取消',
-    })
-  })
-  
+  setTimeout(() => scrollBottom(true));
 }
 </script>
 
-<style scoped>
-#uploadImg, #uploadFile {
-  display: none;
-}
-
-.ChatBox {
+<style lang="scss" scoped>
+.chat-container {
   display: flex;
   flex-direction: column;
   width: 100%;
   padding: 10px;
-}
+  padding-top: 0;
 
-.ChatInfo {
-  position: relative;
-  flex: 0.88;
-  overflow: auto;
-  margin-bottom: 5px;
-}
+  // 消息列表
+  .chat-info {
+    flex: 0.88;
+    overflow-y: scroll;
 
-.load {
-  text-align: center;
-  color: lightseagreen;
-  font-size: 13px;
-}
+    .load {
+      text-align: center;
+      color: lightseagreen;
+      font-size: 13px;
+    }
+  }
 
-.auxiliary {
-  border-top: 1px solid #efefef;
-  padding-top: 3px;
-  padding-left: 5px;
-  margin-bottom: 3px;
-  display: flex;
-}
+  // 输入框
+  .chat-text {
+    position: relative;
+    flex: 0.12;
+    padding: 0 10px;
 
-.auxiliary>div {
-  margin: 0 5px 0 5px;
-}
+    .new-info-count {
+      position: absolute;
+      z-index: 2;
+      top: -45px;
+      right: 30px;
+      width: 30px;
+      height: 30px;
+      color: #efefef;
+      background-color: #F56C6C;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
 
-.icon-tupian,
-.icon-wenjianjia {
-  color: #666;
-  font-size: 1.2em;
-}
+      &::before {
+        position: absolute;
+        z-index: 1;
+        top: 25px;
+        content: '';
+        display: inline-block;
+        width: 0;
+        height: 0;
+        border: 10px solid transparent;
+        border-top: 10px solid #F56C6C;
+      }
+    }
 
-.ChatText {
-  position: relative;
-  flex: 0.12;
-  padding: 0 10px;
-}
-
-.newInfoCount {
-  position: absolute;
-  z-index: 2;
-  top: -45px;
-  right: 30px;
-  width: 30px;
-  height: 30px;
-  color: #efefef;
-  background-color: #F56C6C;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.newInfoCount::before {
-  position: absolute;
-  z-index: 1;
-  top: 25px;
-  content: '';
-  display: inline-block;
-  width: 0;
-  height: 0;
-  border: 10px solid transparent;
-  border-top: 10px solid #F56C6C;
-}
-
-.ChatInput {
-  resize: none;
-  font-size: 15px;
-  border: none;
-  outline: none;
-  width: 100%;
-  height: 100%;
-  word-break: break-all;
+    .chat-input {
+      resize: none;
+      font-size: 13px;
+      border: none;
+      outline: none;
+      width: 100%;
+      height: 100%;
+      word-break: break-all;
+    }
+  }
 }
 </style>

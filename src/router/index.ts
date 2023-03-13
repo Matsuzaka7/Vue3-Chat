@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import privateStore from '@/store/privateStore';
+import Store from '@/store';
 
 const routes:Array<RouteRecordRaw> = [
   {
@@ -8,18 +8,18 @@ const routes:Array<RouteRecordRaw> = [
   },
   {
     path: '/groupChat',
-    component: () => import('@/pages/GroupChat'),
+    component: () => import('@/pages/groupChat/index.vue'),
     meta: { index: 0 }
   },
   {
     name: 'privateChat',
     path: '/privateChat/:ip',
     meta: { index: 1 },
-    component: () => import('@/pages/privateChat'),
+    component: () => import('@/pages/privateChat/index.vue'),
     beforeEnter: (to, from) => {
-      const privateS = privateStore()
+      const store = Store()
       // 判断地址url是否和pinia中的目标ip一致，避免有人修改url后访问
-      if (to.params.ip === privateS.carriedIP) {
+      if (to.params.ip === store.private.carriedIP) {
         return true
       } else {
         return false

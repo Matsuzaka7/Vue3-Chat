@@ -2,12 +2,10 @@ import { createApp } from "vue";
 import { createPinia } from 'pinia'
 import VueViewer from "v-viewer";
 
-import { resizeChange } from "./utils/Chat";
+import "./assets/font/iconfont.css";
+import { resizeChange } from "./utils/chat";
 import router from './router'
 import App from "./App.vue";
-
-import "./assets/font/iconfont.css";
-import "./assets/font/iconfont.ttf";
 
 const app = createApp(App);
 const store = createPinia()

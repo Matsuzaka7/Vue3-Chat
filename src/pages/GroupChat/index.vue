@@ -1,45 +1,47 @@
 <template>
-  <List 
-    class="List"
-    :wsData="wsData"
-    :userIP="userIP"
-  ></List>
-  <Chat :infoData="infoData" :userIP="userIP" :ws="ws" @pooledData="pooledData"></Chat>
+  <div class="chat-subject">
+    <List 
+      class="list"
+      :wsData="persons"
+      :userIP="userIP"
+    ></List>
+    <Chat :infoData="groupInfoData" :userIP="userIP" :ws="ws" @pooledData="pooledData"></Chat>
+  </div>
 </template>
 
 <script setup lang="ts">
+import { toRefs } from 'vue'
 import { storeToRefs } from 'pinia'
-import List from '../../components/List/index.vue'
-import Chat from '../../components/Chat/index.vue'
-
-import groupStore from '@/store/groupStore'
+import List from '@/components/list/index.vue'
+import Chat from '@/components/chat/index.vue'
 import Store from '@/store'
 
 const store = Store()
-const group = groupStore()
+const storeRef = storeToRefs(store)
 
-// 用户ip
-const { ws, wsData, userIP } = storeToRefs(store)
-// 消息数据
-const { groupInfoData: infoData } = storeToRefs(group)
+const { groupInfoData } = storeRef
+const { ws, userIP, persons } = toRefs(storeRef.wsData.value)
 
 // 滚动合并数据
 const pooledData = (data) => {
-  infoData.value = [...data, ...group.groupInfoData]
+  groupInfoData.value = [...data, ...store.groupInfoData]
 }
+
 </script>
 
-<style scoped>
-.List {
-  position: sticky;
-  top: 0;
-  min-width: 145px;
-  width: 15px;
-  border-right: 1px solid #eee;
-  overflow: auto;
-  padding: 8px 12px;
-  transition: all 0.15s;
+<style lang="scss" scoped>
+.chat-subject {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+  .list {
+    min-width: 145px;
+    width: 15px;
+    border-right: 1px solid #eee;
+    overflow: auto;
+    padding: 0px 12px;
+    margin-top: 6px;
+    transition: all 0.15s;
+  }
 }
-
-
 </style>

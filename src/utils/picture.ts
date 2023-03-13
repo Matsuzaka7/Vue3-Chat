@@ -1,5 +1,6 @@
-// 压缩图片
+import { uploadImageBase64Type } from "@/types/chatApiType"
 /**
+ * 压缩图片
  * @param imageBase64 图片的base64编码
  * @param quality 图片压缩后的质量（0~100）
  * @param mimeType 图片类型
@@ -18,6 +19,7 @@ export const compressPicture = (imageBase64: string, quality: number, mimeType: 
     const ctx = canvas.getContext('2d')
     ctx?.drawImage(image, 0, 0, compressWidth, compressHeight)
     const compressPic = canvas.toDataURL(mimeType, quality / 100)
+    
     cb({
       imageWidth: canvas.width,
       imageHeight: canvas.height,
