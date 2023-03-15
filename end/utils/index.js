@@ -37,4 +37,5 @@ export const privateChat = (wss, ip) => {
 export const strToBase64 = (data) => {
   const buffer = Buffer.from(JSON.stringify(data));
   return buffer.toString("base64");
+  // return JSON.stringify(data)
 };

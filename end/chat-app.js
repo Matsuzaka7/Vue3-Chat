@@ -1,17 +1,39 @@
-
 import fs from "fs"
 import { WebSocketServer } from "ws"
-import { wsHost, infoDataPath, userDataPath, privatePath, limits } from "../config/index.js"
-import { broadList, strToBase64 } from '../utils/index.js'
-import { wsPrivate, findTargetUser } from '../routers/wsPrivate.js'
-import { HandlePrivateFn } from './privateWS.js'
+import express from "express"
+import history from "connect-history-api-fallback"
+import userRouter from './routers/index.js'
+import { wsHost, httpHost, infoDataPath, userDataPath, privatePath, limits } from "./config/index.js"
+import { broadList, strToBase64 } from './utils/index.js'
+import { wsPrivate, findTargetUser } from './routers/wsPrivate.js'
 
+const app = express()
+app.use(userRouter)
+app.use(express.static("data/imgs"))
+app.use(express.static("data/files"))
+app.use(history({
+  rewrites: [
+    
+  ]
+}))
 
 // 创建 http ws，端口为1000
 export let wss = new WebSocketServer({ port: wsHost });
 
 // 所有人的名单
 let personList = [];
+// 检测一次该路径是否有该文件
+try {
+  fs.readFileSync(infoDataPath, "utf8")
+} catch (error) {
+  fs.appendFileSync(infoDataPath, '[]')
+}
+
+try {
+  fs.readFileSync(userDataPath, "utf8")
+} catch (error) {
+  fs.appendFileSync(userDataPath, '[]')
+}
 
 let interval;
 function heartbeat() {
@@ -27,8 +49,27 @@ wss.on("connection", (connection, req) => {
     wsPrivate(wss, connection, ip, targetIP)
     connection.on("message", function (connectionData, reason) {
       const data = JSON.parse(connectionData.toString());
-      // 处理私聊
-      HandlePrivateFn(data)
+      // 处理客户端发送过来的私聊消息
+      if (data.type === "addInfoData") {
+        const sort = [ip, targetIP].sort()
+        const path = privatePath + `${sort[0]}-${sort[1]}.json`
+        const infoData = JSON.parse(fs.readFileSync(path, "utf8"));
+        const infoObj = {
+          type: 'text',
+          id: String(Date.now() + Math.random() ).substring(2, 16),
+          time: Date.now(),
+          userIP: ip,
+          value: data.data.value,
+          username: data.data.username
+        };
+        infoData.push(infoObj);
+        fs.writeFileSync(path, JSON.stringify(infoData, null, 2), "utf8");
+        // 将消息只发给我和目标人物
+        findTargetUser(wss, connection, targetIP, strToBase64({
+          type: "privateNewInfo",
+          data: { ...infoObj, value: data.data.value }
+        }))
+      }
     });
     return void 0;
   }
@@ -154,3 +195,13 @@ wss.on("connection", (connection, req) => {
     console.log('connection.on("data")');
   });
 });
+
+app.listen(httpHost, () => {
+  console.log(
+    `
+      本地服务已启动
+        - ws端口为：${wsHost}
+        - http端口为：${httpHost}
+    `
+  )
+})
