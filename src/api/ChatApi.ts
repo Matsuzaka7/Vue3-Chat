@@ -47,13 +47,15 @@ export const loadMoreInfo = (data: loadMoreInfoType) => {
  * 发送图片
  * @param userName 用户名
  * @param data ( imageWidth, imageHeight, compressPic )
+ * @param carriedIP 目标ip，用于私聊发送图片做唯一标识
  * @returns axios
  */
-export const uploadImageBase64 = (userName: string, data: uploadImageBase64Type) => {
+export const uploadImageBase64 = (userName: string, data: uploadImageBase64Type, carriedIP: string) => {
   const formData = new FormData()
   formData.append('userName', userName)
   formData.append('imageWidth', String(data.imageWidth))
   formData.append('imageHeight', String(data.imageHeight))
+  formData.append('carriedIP', carriedIP)
   formData.append('imageBase64', data.compressPic)
   return request({
     url: 'uploadImg',
@@ -66,11 +68,13 @@ export const uploadImageBase64 = (userName: string, data: uploadImageBase64Type)
  * 发送文件
  * @param userName 用户名
  * @param data 文件对象
+ * @param carriedIP 目标ip，用于私聊发送图片做唯一标识
  * @returns axios
  */
-export const uploadFormFile = (userName: string, data: File) => {
+export const uploadFormFile = (userName: string, data: File, carriedIP: string) => {
   const formData = new FormData()
   formData.append('userName', userName)
+  formData.append('carriedIP', carriedIP)
   formData.append('fileData', data, data.name)
   
   return request({

@@ -1,6 +1,6 @@
 <template>
   <div class="chat-subject">
-    <Chat :infoData="privateInfoData" :userIP="userIP" :ws="ws" @pooledData="pooledData" class="PChat"></Chat>
+    <Chat :carriedIP="carriedIP" :infoData="privateInfoData" :userIP="userIP" :ws="ws" @pooledData="pooledData" class="PChat"></Chat>
   </div>
 </template>
 
@@ -86,9 +86,9 @@ const pooledData = (data) => {
 </script>
 
 <style scoped>
-.PChat:deep(label) {
+/* .PChat:deep(label) {
   display: none;
-}
+} */
 
 .chat-subject {
   display: flex;

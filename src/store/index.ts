@@ -128,7 +128,6 @@ export default defineStore({
           break;
         case "newInfo":
           this.addGroupInfoData(data)
-          document.title = '有新消息'
           break;
         case "findUserName":
           const username: string = localStorage.getItem('userName')! || ''

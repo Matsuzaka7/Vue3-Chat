@@ -22,6 +22,7 @@ import { storeToRefs } from 'pinia'
 import { ref, onUnmounted, h, watch, toRefs } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
 import { ElNotification, ElLoading } from 'element-plus'
+import { detectionActivity, scrollTitle } from '@/utils/common'
 import Dialog from '@/components/chat/components/dialog.vue'
 import Header from '@/components/header/index.vue'
 import Card from '@/components/card/index.vue'
@@ -40,6 +41,9 @@ const storeRef = storeToRefs(store)
 const { chatState, wsLink, persons, notice, isShowDialog } = toRefs(storeRef.wsData.value)
 const { privateMessageList } = toRefs(storeRef.private.value)
 
+const [openTitle, stopScroll] = scrollTitle('有新消息')
+stopScroll()
+
 type Meta = {
   from: string,
   index: number
@@ -52,6 +56,14 @@ watch(() => route.meta as Meta, (newVal: Meta, oldVal: Meta) => {
   transitionName.value = newVal.index < oldVal.index ? 'slide-right' : 'slide-left'
 })
 
+let isActivity = true
+detectionActivity(() => {
+  stopScroll()
+  isActivity = true
+}, () => {
+  isActivity = false
+})
+
 // 链接/重连ws
 let ws
 let loadingInstance = ElLoading.service()
@@ -61,6 +73,11 @@ let loadingInstance = ElLoading.service()
     return (function fn() {
       ws = new WebSocket(import.meta.env.VITE_APP_BASE_WSS_URL)
       ws.onmessage = function (evt: MessageEvent) {
+        if (!isActivity) {
+          openTitle()
+        } else {
+          stopScroll()
+        }
         store.handleGroupAllWs(evt, route, router)
       };
 

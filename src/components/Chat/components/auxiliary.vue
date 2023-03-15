@@ -20,6 +20,8 @@ import { scrollBottom } from '@/utils/chat'
 import { uploadImageBase64, uploadFormFile } from '@/api/ChatApi'
 import { uploadImageBase64Type } from '@/types/chatApiType';
 
+const props = defineProps(['carriedIP'])
+
 const userName = localStorage.getItem('userName') || ''
 
 // 上传图片
@@ -44,7 +46,7 @@ const uploadImg = (e) => {
           customClass: 'custom'
         }
       ).then(() => {
-        uploadImageBase64(userName, data).then(({ data }) => {
+        uploadImageBase64(userName, data, props.carriedIP).then(({ data }) => {
           if (data.data) {
             ElMessage({ type: 'success', message: '已发送！' })
             setTimeout(() => scrollBottom(), 300);
@@ -84,7 +86,7 @@ const uploadFile = (e) => {
     }
   ).then(() => {
     ElMessage({ type: 'info', message: '发送中..' })
-    uploadFormFile(userName, fileObj)
+    uploadFormFile(userName, fileObj, props.carriedIP)
       .then(({ data }) => {
         if (data.type === "saveFile" && data.data === true) {
           ElMessage({ type: 'success', message: '已发送！' })

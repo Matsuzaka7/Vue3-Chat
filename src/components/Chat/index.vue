@@ -5,7 +5,7 @@
       <div class="load" v-show="pageData.isLoad">{{ pageData.isLoad && loadText }}</div>
       <ChatInfo @newInfoChange="newInfoChange" :infoData="props.infoData" :userIP="props.userIP"></ChatInfo>
     </div>
-    <Auxiliary></Auxiliary>
+    <Auxiliary :carriedIP="props.carriedIP"></Auxiliary>
     <!-- 输入框 -->
     <div class="chat-text">
       <div class="new-info-count" v-if="newInfoCount" @click="resetInfoCount">{{ newInfoCount }}</div>
@@ -35,6 +35,11 @@ const props = defineProps({
   ws: {
     type: Object,
     default: () => ({})
+  },
+  // 私聊时用的ip，用于发送照片或文件做标识
+  carriedIP: {
+    type: String,
+    default: ''
   }
 })
 
