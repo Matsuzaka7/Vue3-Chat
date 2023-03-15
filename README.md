@@ -233,7 +233,7 @@ node app.js
 
 ## loadMoreInfo
 
-用户滚动到顶部时，加载更多数据时发送本http请求
+用户滚动到顶部时，加载更多数据将会发送该类型给服务器，服务器收到后将会返回 `loadMoreData`
 - 请求方式：`post`
 
 - 请求路径: `loadMoreInfo`

@@ -1,4 +1,7 @@
 node_modules/
 dist/
+end/data/files
+end/data/imgs
+end/data/private
 .vscode/
 .gitignore

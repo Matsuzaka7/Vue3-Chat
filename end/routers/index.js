@@ -3,7 +3,7 @@ import fs from "fs";
 import formidable from "formidable";
 import process from "process";
 import { userDataPath, infoDataPath, httpDomain, imgPath, filePath, limits } from "../config/index.js";
-import { wss } from "../app.js";
+import { wss } from "../ws/groupWS.js";
 import { broadList, strToBase64 } from "../utils/index.js";
 
 const router = express.Router();
