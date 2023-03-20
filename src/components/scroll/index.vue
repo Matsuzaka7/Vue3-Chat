@@ -1,6 +1,6 @@
 <template>
   <div ref="scrollEl" class="scroll-container" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend" @scroll="scroll">
-    <div :style="{ transition: !data.fl && 'all 0.2s', transform: `translateY(${data.upHeight}px)`}">
+    <div class="scroll-loading" :style="{ transition: !data.fl && 'all 0.2s', transform: `translateY(${data.upHeight}px)`}">
       <Transition name="scroll">
         <div v-if="data.fl || data.showStr" class="loader"></div>
       </Transition>
@@ -11,7 +11,9 @@
 
 <script setup lang="ts">
 import { ref, Ref, reactive, watch } from 'vue'
-let emit = defineEmits(['update:isLoad', 'pullDownHandler', 'cloneInfo'])
+let emit = defineEmits(['update:isLoad', 'pullDownHandler', 'cloneInfo']);
+const isPC = !(/(\bAndroid(?:.+)Mobile\b|iPhone|iPod|iPad|Android)/i.test(navigator.userAgent))
+
 const props = defineProps({
   // 是否加载完毕，完毕后才更改动画
   isLoad: {
@@ -84,9 +86,12 @@ watch(() => props.isLoad, () => {
 })
 
 const scroll = (e) => {
+  if (!isPC) return
   const target = e.target
   if (target.scrollHeight - (target.scrollTop + target.offsetHeight) < 40) {
     emit('cloneInfo')
+  } else if (target.scrollTop <= 0) {
+    emit('pullDownHandler')
   }
 }
 </script>
@@ -97,6 +102,13 @@ const scroll = (e) => {
   height: 300px;
   padding: 16px;
   overflow: auto;
+  .scroll-loading {
+    position: absolute;
+    z-index: 9999;
+    top: 3vh;
+    left: 50%;
+    transform: translateY(-50%);
+  }
 }
 
 .scroll-enter-active,
@@ -116,7 +128,8 @@ const scroll = (e) => {
 
 // 加载动画
 .loader {
- position: relative;
+ position: absolute;
+ z-index: 8888;
  width: 2.5em;
  height: 2.5em;
  transform: rotate(165deg);

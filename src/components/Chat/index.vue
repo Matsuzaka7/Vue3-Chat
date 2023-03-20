@@ -90,7 +90,7 @@ const pullDownHandler = () => {
       data.data.isMore ? ElMessage.success('加载成功') : ElMessage.error('没有更早的消息了~')
     }, 200)
   }).catch(err => {
-      ElMessage.error('没有更早的消息了~')
+    ElMessage.error('加载失败请重试')
   })
 }
 
