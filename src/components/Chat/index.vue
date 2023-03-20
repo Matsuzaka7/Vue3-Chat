@@ -1,10 +1,9 @@
 <template>
   <div class="chat-container">
     <!-- 消息数 -->
-    <div ref="ChatInfoEl" class="chat-info" @scroll="scroll">
-      <div class="load" v-show="pageData.isLoad">{{ pageData.isLoad && loadText }}</div>
-      <ChatInfo @newInfoChange="newInfoChange" :infoData="props.infoData" :userIP="props.userIP"></ChatInfo>
-    </div>
+    <Scroll ref="ScrollRef" class="chat-info" v-model:isLoad="loading" @pullDownHandler="pullDownHandler" @cloneInfo="cloneInfo">
+      <ChatInfo  @newInfoChange="newInfoChange" :infoData="props.infoData" :userIP="props.userIP"></ChatInfo>
+    </Scroll>
     <Auxiliary :carriedIP="props.carriedIP"></Auxiliary>
     <!-- 输入框 -->
     <div class="chat-text">
@@ -19,6 +18,7 @@ import { ref, Ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { scrollBottom } from '@/utils/chat'
 import { loadMoreInfo } from '@/api/ChatApi'
+import Scroll from '@/components/scroll/index.vue'
 import ChatInfo from './components/chat-info.vue';
 import Auxiliary from './components/auxiliary.vue'
 
@@ -44,7 +44,7 @@ const props = defineProps({
 })
 
 const textValue = ref('')
-const ChatInfoEl: Ref<HTMLElement | null> = ref(null)
+const ScrollRef: Ref<HTMLElement | any> = ref(null)
 
 const pageData = reactive({
   isLoad: false, // 正在加载中？
@@ -56,14 +56,13 @@ const pageData = reactive({
 
 let height = 0
 onMounted(() => {
-  height = ChatInfoEl.value!.scrollHeight
+  height = ScrollRef.value!.scrollEl.scrollHeight
 })
-
 // 数据加载成功时执行
-const loadText = ref('')
+const loading = ref(false)
 const updatePage = ({ isMore }, type) => {
   queueMicrotask(() => {
-    ChatInfoEl.value!.scrollTo(0, ChatInfoEl.value!.scrollHeight - height)
+    ScrollRef.value.scrollEl!.scrollTo(0, ScrollRef.value.scrollEl!.scrollHeight - height)
   });
 
   pageData.type = type
@@ -73,28 +72,30 @@ const updatePage = ({ isMore }, type) => {
   } else {
     pageData.isMore = isMore
   }
-  height = ChatInfoEl.value!.scrollHeight
+  height = ScrollRef.value!.scrollEl.scrollHeight
 }
-// 检测是否滚动到头
-const scroll = (e) => {
-  const target = e.target
-  if (pageData.isLoad) return
-  if (target.scrollTop <= 0) {
-    if (!pageData.isMore) return ElMessage.error('没有更早的消息了~')
-    loadText.value = '加载中..'
-    pageData.isLoad = true
-    // 发送请求获取更多消息
-    loadMoreInfo({
-      page: pageData.page,
-      limit: pageData.limit
-    }).then(({ data }) => {
-      // 合并数据
+
+// 下拉刷新
+const pullDownHandler = () => {
+  // 发送请求获取更多消息
+  loadMoreInfo({
+    page: pageData.page,
+    limit: pageData.limit
+  }).then(({ data }) => {
+    loading.value = true
+    // 合并数据
+    setTimeout(() => {
       emit('pooledData', data.data.data)
       updatePage(data.data, 'loadMoreData')
-    })
-  } else if (target.scrollHeight - (target.scrollTop + target.offsetHeight) < 40) {
-    newInfoCount.value = 0
-  }
+      data.data.isMore ? ElMessage.success('加载成功') : ElMessage.error('没有更早的消息了~')
+    }, 200)
+  }).catch(err => {
+      ElMessage.error('没有更早的消息了~')
+  })
+}
+
+const cloneInfo = () => {
+  newInfoCount.value = 0
 }
 
 let timer: any = 0

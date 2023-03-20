@@ -86,9 +86,9 @@ const pooledData = (data) => {
 </script>
 
 <style scoped>
-/* .PChat:deep(label) {
+.PChat:deep(label) {
   display: none;
-} */
+}
 
 .chat-subject {
   display: flex;
